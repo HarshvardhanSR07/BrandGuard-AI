@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --canvas: #f4efe6;
+  --surface: #ffffff;
+  --border: #e4ddd3;
+  --ink: #12161c;
+  --muted: #736d64;
+  --lime: #a3e635;
+  font-family: 'Outfit', 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: var(--canvas);
+  color: var(--ink);
+  overflow-x: hidden;
+}
+
+/* Tabular nums on all numbers per taste-skill / impeccable guidelines */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Warm, elegant parchment scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d9d1c5;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #beb5a7;
+}
+
+/* Custom dark scrollbar for sidebar */
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background: #2a3240;
+}
+.dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #3b4658;
+}
+
+/* Focus ring hygiene */
+:focus-visible {
+  outline: 2px solid #a3e635;
+  outline-offset: 1px;
+}
+
+/* Silky mascot cross-fade animation */
+@keyframes mascotCrossFade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+

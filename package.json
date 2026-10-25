@@ -1,0 +1,36 @@
+{
+  "name": "brandguard-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BrandGuard AI - Evidence-First Brand Governance Platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --prefix apps/web run dev",
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:api": "tsx apps/api/src/server.ts",
+    "build": "npm --prefix packages/data-security run build && npm --prefix apps/web run build",
+    "build:security": "npm --prefix packages/data-security run build",
+    "test": "npm --prefix apps/web run test",
+    "seed": "tsx scripts/seed.ts",
+    "seed:reset": "tsx packages/data-security/src/seed/seed.ts --reset",
+    "atlas:setup": "node scripts/atlas-setup.js",
+    "verify-env": "tsx scripts/verify-environment.ts"
+  },
+  "keywords": [
+    "brand-governance",
+    "ai-compliance",
+    "evidence-first",
+    "monorepo",
+    "data-security"
+  ],
+  "author": "Team INFINITY",
+  "license": "MIT",
+  "devDependencies": {
+    "dotenv": "^16.4.5",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3"
+  }
+}

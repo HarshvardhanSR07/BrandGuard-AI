@@ -17,7 +17,9 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@brandguard/shared": ["../../packages/shared/src"],
+      "@brandguard/shared/*": ["../../packages/shared/src/*"]
     }
   },
   "include": ["src"]

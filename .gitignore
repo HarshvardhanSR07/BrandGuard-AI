@@ -36,6 +36,13 @@ build/
 .env.production.local
 *.env
 !.env.example
+*.pem
+*.key
+.seed-credentials*
+
+# Python scratch / generator tools (keep root pure Node)
+build_perfect_mascot.py
+fix_mascot_sprites.py
 
 # Uploads and temporary data
 uploads/

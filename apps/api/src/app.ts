@@ -19,6 +19,7 @@ import {
   listAuditEvents,
   verifyChain,
 } from '@brandguard/data-security';
+import { brandGuardAIService } from './ai/brandGuardAIService';
 
 export const createApp = (): Application => {
   const app = express();
@@ -62,6 +63,16 @@ export const createApp = (): Application => {
     res.json(await analyses.listFindings(getCtx(req), req.params.id));
   }));
 
+  // BrandGuard AI Specialist Governance Review (Qwen3-4B LoRA Module + Gates L-01 to L-06)
+  app.post('/api/governance/review', asyncHandler(async (req, res) => {
+    const { brand_id, draft_text } = req.body;
+    if (!brand_id || !draft_text) {
+      return res.status(400).json({ error: { message: 'brand_id and draft_text are required' } });
+    }
+    const result = await brandGuardAIService.brand_governance_review(brand_id, draft_text);
+    res.json(result);
+  }));
+
   // Review & Decisions (Segregation of Duties enforced in reviewRepo)
   app.patch('/api/issues/:id', authenticate(), workspaceContext(), requirePermission('draft:decide'), asyncHandler(async (req, res) => {
     res.json(await reviews.decideFinding(getCtx(req), req.params.id, req.body));
@@ -82,12 +93,12 @@ export const createApp = (): Application => {
   }));
 
   // Audit Hash Chain
-  app.get('/api/audit', authenticate(), workspaceContext(), requirePermission('workspace:read'), asyncHandler(async (req, res) => {
+  app.get('/api/audit', authenticate(), workspaceContext(), requirePermission('audit:read'), asyncHandler(async (req, res) => {
     res.json(await listAuditEvents(getCtx(req)));
   }));
 
-  app.post('/api/audit/verify', authenticate(), workspaceContext(), requirePermission('workspace:read'), asyncHandler(async (req, res) => {
-    res.json(await verifyChain(getCtx(req).workspaceId));
+  app.post('/api/audit/verify', authenticate(), workspaceContext(), requirePermission('audit:read'), asyncHandler(async (req, res) => {
+    res.json(await verifyChain(getCtx(req)));
   }));
 
   // Health

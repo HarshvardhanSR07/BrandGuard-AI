@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BrandGuardAIReview_v1.1",
+  "description": "The official output contract for the BrandGuard AI module. Any response not adhering to this schema must be marked as Incomplete.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_id",
+    "brand_id",
+    "status",
+    "human_review_required",
+    "incomplete_reasons",
+    "findings",
+    "model_version",
+    "rulebook_version",
+    "timestamp"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "A unique UUID v4 for the specific review session."
+    },
+    "brand_id": {
+      "type": "string",
+      "description": "The ID of the brand being reviewed (e.g., 'VerdantCo')."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Complete",
+        "Incomplete"
+      ],
+      "description": "Complete if all checks passed or were definitively failed. Incomplete if evidence is missing or corrections are unsafe."
+    },
+    "human_review_required": {
+      "type": "boolean",
+      "description": "Flag indicating if a human must manually sign off on this content."
+    },
+    "incomplete_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of specific reasons why the review is marked Incomplete."
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "finding_id",
+          "issue_category",
+          "severity",
+          "affected_text",
+          "explanation",
+          "evidence_references",
+          "claim_status"
+        ],
+        "properties": {
+          "finding_id": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-indexed unique ID for the finding within this review."
+          },
+          "issue_category": {
+            "type": "string",
+            "enum": [
+              "Tone",
+              "Terminology",
+              "Factual Claim",
+              "Stale Information",
+              "Prompt Injection",
+              "Conflicting Evidence"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "Low",
+              "Medium",
+              "High",
+              "Critical"
+            ]
+          },
+          "affected_text": {
+            "type": "string",
+            "description": "The exact snippet of text that caused the violation."
+          },
+          "rule_reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The ID of the rule from the rulebook (e.g., 'Verdant_R1')."
+          },
+          "evidence_references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of IDs from the Synthetic Evidence Registry (SER)."
+          },
+          "claim_status": {
+            "type": "string",
+            "enum": [
+              "Supported",
+              "Unverified",
+              "Stale",
+              "Conflicting",
+              "Not applicable"
+            ]
+          },
+          "explanation": {
+            "type": "string",
+            "description": "Human-readable explanation of why this is a violation."
+          },
+          "corrected_text": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "An evidence-grounded suggested fix. Null if no safe fix exists."
+          },
+          "human_review_required": {
+            "type": "boolean",
+            "description": "Whether this specific finding requires human verification."
+          }
+        }
+      }
+    },
+    "model_version": {
+      "type": "string",
+      "description": "The version of the LLM and adapter used."
+    },
+    "rulebook_version": {
+      "type": "string",
+      "description": "The version of the brand rulebook applied."
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the review."
+    }
+  }
+}

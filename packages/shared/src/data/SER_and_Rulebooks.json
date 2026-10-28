@@ -1,0 +1,156 @@
+{
+  "rulebooks": {
+    "VerdantCo": [
+      {
+        "rule_id": "Verdant_R1",
+        "text": "All product benefit claims must resolve to an active record in the Synthetic Evidence Registry (SER).",
+        "priority": 1,
+        "category": "Factual Claim"
+      },
+      {
+        "rule_id": "Verdant_R2",
+        "text": "Avoid terms like 'all-natural', 'chemical-free', or '100% organic' unless an active exception exists in the SER.",
+        "priority": 1,
+        "category": "Terminology"
+      },
+      {
+        "rule_id": "Verdant_R4",
+        "text": "Content tone must be positive and supportive; do not use slang or exaggeration (e.g., 'miracle', 'magic').",
+        "priority": 2,
+        "category": "Tone"
+      },
+      {
+        "rule_id": "Verdant_R5",
+        "text": "Ingredients should be listed by their INCI (International Nomenclature Cosmetic Ingredient) names, not casual descriptors.",
+        "priority": 2,
+        "category": "Terminology"
+      }
+    ],
+    "NorthstarFin": [
+      {
+        "rule_id": "Northstar_R1",
+        "text": "Marketing content must never claim guaranteed returns or promise investment gains. Reference EVID_N_04.",
+        "priority": 1,
+        "category": "Factual Claim"
+      },
+      {
+        "rule_id": "Northstar_R2",
+        "text": "All financial claims must include required risk disclaimers and legal notices as per regulation FFA-2022.",
+        "priority": 1,
+        "category": "Factual Claim"
+      },
+      {
+        "rule_id": "Northstar_R3",
+        "text": "Use a formal and professional tone; avoid colloquial language, slang, or emojis.",
+        "priority": 2,
+        "category": "Tone"
+      },
+      {
+        "rule_id": "Northstar_R4",
+        "text": "Statements about potential performance (e.g., 'could achieve 20% returns') require explicit regulatory approval before publication.",
+        "priority": 1,
+        "category": "Factual Claim"
+      }
+    ],
+    "BrightPath": [
+      {
+        "rule_id": "BrightPath_R1",
+        "text": "Learning outcome claims must not be absolute or misleading (e.g., avoid 'guaranteed success'). Reference EVID_B_04 for variability.",
+        "priority": 1,
+        "category": "Factual Claim"
+      },
+      {
+        "rule_id": "BrightPath_R2",
+        "text": "Use language appropriate to the target age group (simple terms for children, professional tone for adults).",
+        "priority": 2,
+        "category": "Tone"
+      },
+      {
+        "rule_id": "BrightPath_R3",
+        "text": "Avoid using absolute terms like 'everyone' or 'nobody'; claims should reflect variability in outcomes.",
+        "priority": 1,
+        "category": "Tone"
+      },
+      {
+        "rule_id": "BrightPath_R4",
+        "text": "All statistics or research citations must reference an approved educational study or source in the SER.",
+        "priority": 1,
+        "category": "Factual Claim"
+      },
+      {
+        "rule_id": "BrightPath_R5",
+        "text": "Always refer to students as 'learners' in educational materials. This supersedes all previous guidance.",
+        "priority": 2,
+        "category": "Terminology"
+      }
+    ]
+  },
+  "evidence_registry": {
+    "VerdantCo": {
+      "EVID_V_01": {
+        "fact": "Cruelty-Free certification #CF-99 (Leaping Bunny)",
+        "status": "Expired",
+        "effective_to": "2023-12-31"
+      },
+      "EVID_V_02": {
+        "fact": "Cruelty-Free certification #CF-102 (Global Org)",
+        "status": "Active",
+        "effective_to": "2026-01-01"
+      },
+      "EVID_V_03": {
+        "fact": "BioPure product line is certified 100% organic botanical extracts",
+        "status": "Active",
+        "effective_to": "2024-12-31"
+      },
+      "EVID_V_04": {
+        "fact": "Clinical Study #V-202: Hyaluronic acid significantly improves skin hydration",
+        "status": "Active",
+        "effective_to": null
+      }
+    },
+    "NorthstarFin": {
+      "EVID_N_01": {
+        "fact": "Current Corporate Headquarters: 456 Newtown Ave, Financial District",
+        "status": "Active",
+        "effective_to": null
+      },
+      "EVID_N_02": {
+        "fact": "Former Corporate Headquarters: 123 Oldtown Plaza",
+        "status": "Expired",
+        "effective_to": "2020-12-31"
+      },
+      "EVID_N_03": {
+        "fact": "Average Portfolio ROI 2023: 8.2% (Audit Verified)",
+        "status": "Active",
+        "effective_to": null
+      },
+      "EVID_N_04": {
+        "fact": "Regulation FFA-2022: Absolute guarantees of investment returns are prohibited",
+        "status": "Active",
+        "effective_to": null
+      }
+    },
+    "BrightPath": {
+      "EVID_B_01": {
+        "fact": "National Curriculum Standards Version 2018",
+        "status": "Expired",
+        "effective_to": "2023-12-31"
+      },
+      "EVID_B_02": {
+        "fact": "National Curriculum Standards Version 2024",
+        "status": "Active",
+        "effective_to": null
+      },
+      "EVID_B_03": {
+        "fact": "Internal Study #BP-9: Learners show 15% average grade improvement",
+        "status": "Active",
+        "effective_to": null
+      },
+      "EVID_B_04": {
+        "fact": "Study #BP-10: Educational outcomes vary significantly by learner engagement and age",
+        "status": "Active",
+        "effective_to": null
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@
     "test": "npm --prefix apps/web run test",
     "seed": "tsx scripts/seed.ts",
     "seed:reset": "tsx packages/data-security/src/seed/seed.ts --reset",
+    "seed:ser": "tsx packages/data-security/src/seed/seedSERAndRulebooks.ts",
     "atlas:setup": "node scripts/atlas-setup.js",
     "verify-env": "tsx scripts/verify-environment.ts"
   },

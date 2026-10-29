@@ -29,6 +29,18 @@ export const createApp = (): Application => {
   app.use(cors({ origin: true, credentials: true }));
   app.use(express.json({ limit: '1mb' }));
 
+  // Public Health & Engine Status
+  app.get('/api/health', (req, res) => {
+    const token = process.env.HF_TOKEN || process.env.HF_ACCESS_KEY;
+    res.json({
+      status: 'ok',
+      apiKeyConfigured: !!token,
+      keyPrefix: token ? `${token.substring(0, 4)}...` : null,
+      modelId: process.env.HF_MODEL_ID || 'aliasLLM/brandguard-ai-model',
+      engineMode: token ? 'API Token Enabled' : 'Offline Deterministic Grounding',
+    });
+  });
+
   // Auth Router (POST /api/auth/login, GET /api/me/workspaces, POST /api/auth/change-password)
   app.use('/api', createAuthRouter());
 

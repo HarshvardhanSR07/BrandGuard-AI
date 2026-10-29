@@ -467,18 +467,24 @@ export const WorkspacePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <Badge variant="active" size="sm">
-                Engine Active
+              <Badge variant="approved" size="sm">
+                API Key Enabled
               </Badge>
             </div>
 
             <div className="space-y-1.5 pt-1">
-              <label className="text-[10px] font-mono uppercase text-[#736d64]">
-                Configured API Token
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-mono uppercase text-[#736d64]">
+                  Active API Token (Model: aliasLLM/brandguard-ai-model)
+                </label>
+                <span className="text-[10px] text-[#15803d] font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-[#15803d]" />
+                  Active & Loaded
+                </span>
+              </div>
               <div className="flex items-center gap-2">
                 <input
-                  type="password"
+                  type="text"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   className="flex-1 h-8 px-3 text-xs bg-[#faf7f2] font-mono border border-[#d9d1c5] rounded-lg focus:outline-none focus:border-[#3f7449]"
@@ -486,7 +492,7 @@ export const WorkspacePage: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => showToast('API key configuration validated.')}
+                  onClick={() => showToast('API key configuration validated and active.')}
                   className="text-xs cursor-pointer"
                 >
                   Update

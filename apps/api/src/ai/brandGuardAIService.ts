@@ -158,7 +158,7 @@ export class BrandGuardAIService {
     // Check for obvious off-brand patterns for local testing
     if (lower.includes('cheap')) {
       findings.push({
-        finding_id: 1,
+        finding_id: findings.length + 1,
         issue_category: 'Tone',
         severity: 'Medium',
         affected_text: 'cheap',
@@ -168,6 +168,36 @@ export class BrandGuardAIService {
         explanation: 'Off-brand phrasing: the brand requires premium and accessible terminology instead of "cheap".',
         corrected_text: 'accessible',
         human_review_required: false,
+      });
+    }
+
+    if (lower.includes('all-natural')) {
+      findings.push({
+        finding_id: findings.length + 1,
+        issue_category: 'Terminology',
+        severity: 'Medium',
+        affected_text: 'all-natural',
+        rule_reference: `${brand_id}_R3`,
+        evidence_references: ['SER_001'],
+        claim_status: 'Supported',
+        explanation: 'Use certified plant-derived instead of unqualified "all-natural".',
+        corrected_text: 'plant-derived',
+        human_review_required: false,
+      });
+    }
+
+    if (lower.includes('chemical-free')) {
+      findings.push({
+        finding_id: findings.length + 1,
+        issue_category: 'Factual Claim',
+        severity: 'High',
+        affected_text: 'chemical-free',
+        rule_reference: `${brand_id}_R4`,
+        evidence_references: ['SER_001'],
+        claim_status: 'Conflicting',
+        explanation: 'Scientifically misleading claim: all physical matter is chemical.',
+        corrected_text: 'synthetic-free',
+        human_review_required: true,
       });
     }
 

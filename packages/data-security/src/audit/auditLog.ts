@@ -28,7 +28,7 @@ export interface AuditInput {
 }
 
 const MAX_META_BYTES = 4096;
-const MAX_RETRIES = 8;
+const MAX_RETRIES = 30;
 
 export async function appendAuditEvent(input: AuditInput): Promise<void> {
   const meta = JSON.parse(JSON.stringify(input.meta ?? {})) as Record<string, unknown>; // strips undefined/Dates
@@ -60,7 +60,11 @@ export async function appendAuditEvent(input: AuditInput): Promise<void> {
       });
       return;
     } catch (err: any) {
-      if (err?.code === 11000) continue; // another writer took this seq: re-read the head and retry
+      if (err?.code === 11000) {
+        // another writer took this seq: jitter backoff and retry
+        await new Promise((r) => setTimeout(r, 5 + Math.random() * 20));
+        continue;
+      }
       throw err;
     }
   }

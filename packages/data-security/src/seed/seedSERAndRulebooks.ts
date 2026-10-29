@@ -12,13 +12,13 @@ import type { PolicyCategory, Severity } from '../types';
 function mapCategory(cat: string): PolicyCategory {
   switch (cat.toLowerCase()) {
     case 'tone':
-      return 'tone_voice';
+      return 'tone';
     case 'terminology':
       return 'terminology';
     case 'factual claim':
-      return 'claim_boundary';
+      return 'claim';
     default:
-      return 'claim_boundary';
+      return 'claim';
   }
 }
 

@@ -11,6 +11,7 @@
     "dev": "npm --prefix apps/web run dev",
     "dev:web": "npm --prefix apps/web run dev",
     "dev:api": "tsx apps/api/src/server.ts",
+    "dev:db": "node scripts/dev-db.js",
     "build": "npm --prefix packages/data-security run build && npm --prefix apps/web run build",
     "build:security": "npm --prefix packages/data-security run build",
     "test": "npm --prefix apps/web run test",

@@ -34,8 +34,8 @@ export const Header: React.FC = () => {
 
   return (
     <header className="h-16 bg-white border-b border-[#e7ebe3] px-4 lg:px-8 flex items-center justify-between sticky top-0 z-30 text-[#202820] select-none">
-      {/* Left: Breadcrumbs */}
-      <div className="flex items-center gap-2 text-xs">
+      {/* Left: Breadcrumbs (Hidden on small mobile screens to prevent overflow) */}
+      <div className="hidden md:flex items-center gap-2 text-xs shrink-0">
         <span className="text-[#858d83]">Northstar Studio</span>
         <span className="text-[#858d83]">/</span>
         <strong className="font-semibold text-[#202820]">Compliance Console</strong>

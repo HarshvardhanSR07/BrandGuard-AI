@@ -1,6 +1,6 @@
 /**
  * Public surface of the BrandGuard database + security package.
- * Routes should import ONLY from here. Models and appendAuditEvent are deliberately not exported.
+ * Routes should import ONLY from here. Models and internal audit helpers are deliberately not exported.
  */
 import './db/connect'; // applies sanitizeFilter + strictQuery('throw') before any model is used
 

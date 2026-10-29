@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Badge, BadgeVariant } from '../../components/ui/Badge';
-import { Plus, Search, Filter, ArrowRight, CheckSquare, Square } from 'lucide-react';
+import { draftsApi } from './draftsApi';
+import { Plus, Search, Filter, ArrowRight, CheckSquare, Square, Sparkles } from 'lucide-react';
 
 interface DraftItem {
   id: string;
@@ -72,14 +73,45 @@ export const DraftListPage: React.FC = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<'all' | 'progress' | 'analysis' | 'review' | 'approved'>('all');
   const [query, setQuery] = useState('');
+  const [draftsList, setDraftsList] = useState<DraftItem[]>(DRAFTS_DATA);
   const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    draftsApi.list()
+      .then((data: any[]) => {
+        if (data && data.length > 0) {
+          const mapped: DraftItem[] = data.map((d: any) => {
+            const statusMap: Record<string, { variant: BadgeVariant; label: string }> = {
+              draft: { variant: 'draft', label: 'Draft' },
+              submitted: { variant: 'review', label: 'Needs Review' },
+              changes_requested: { variant: 'medium', label: 'Changes Requested' },
+              approved: { variant: 'approved', label: 'Approved' },
+              rejected: { variant: 'high', label: 'Rejected' },
+            };
+            const mappedStatus = statusMap[d.status] || { variant: 'draft', label: d.status };
+            return {
+              id: d._id || d.id,
+              title: d.title || 'Untitled Draft',
+              channel: d.channel || 'Social Media',
+              author: d.authorId ? `usr_${String(d.authorId).slice(-4)}` : 'You',
+              status: mappedStatus.variant,
+              statusLabel: mappedStatus.label,
+              findings: 0,
+              updatedAt: new Date(d.updatedAt || d.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+          });
+          setDraftsList(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const toggleSelect = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const filteredDrafts = DRAFTS_DATA.filter((d) => {
+  const filteredDrafts = draftsList.filter((d) => {
     if (tab === 'review' && d.status !== 'review') return false;
     if (tab === 'approved' && d.status !== 'approved') return false;
     if (tab === 'analysis' && d.status !== 'analysis') return false;
@@ -181,7 +213,7 @@ export const DraftListPage: React.FC = () => {
           return (
             <div
               key={draft.id}
-              onClick={() => navigate('/analysis')}
+              onClick={() => navigate(`/drafts/edit?id=${draft.id}`)}
               className="p-3.5 flex items-center justify-between gap-4 hover:bg-[#faf7f2] cursor-pointer transition-colors"
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -225,7 +257,7 @@ export const DraftListPage: React.FC = () => {
                   variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate('/analysis');
+                    navigate(`/analysis?draftId=${draft.id}`);
                   }}
                   className="text-xs gap-1"
                 >

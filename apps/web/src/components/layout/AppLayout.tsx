@@ -2,7 +2,6 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
-import { ScrollBasedVelocity } from '../ui/scroll-based-velocity';
 import { LaxAssistant } from '../ai/LaxAssistant';
 
 export const AppLayout: React.FC = () => {
@@ -21,15 +20,6 @@ export const AppLayout: React.FC = () => {
             <Outlet />
           </div>
         </main>
-
-        {/* Bottom Velocity Marquee Compliance Ticker */}
-        <footer className="h-7 border-t border-[#e7ebe3] bg-[#ffffff] flex items-center overflow-hidden shrink-0 select-none">
-          <ScrollBasedVelocity
-            text="LAX AI ASSISTANT ONLINE · ON-BRAND DETERMINISTIC GOVERNANCE · REAL FACTS STRONGER STORIES · ZERO UNVERIFIED CLAIMS ·"
-            default_velocity={18}
-            className="text-[10px] font-mono tracking-widest text-[#858d83]"
-          />
-        </footer>
       </div>
 
       {/* Interactive LAX AI Assistant Floating Widget */}

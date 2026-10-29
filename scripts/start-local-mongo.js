@@ -1,5 +1,5 @@
 /**
- * Starts a persistent local MongoDB instance using mongodb-memory-server
+ * Starts a persistent local MongoDB instance using mongodb-memory-server (v7.0.14)
  * bound to 127.0.0.1:27017 with persistent storage in ./.mongo-data
  */
 const path = require('path');
@@ -13,11 +13,14 @@ if (!fs.existsSync(dbPath)) {
 }
 
 async function start() {
-  console.log('[Mongo] Initializing local MongoDB instance on port 27017...');
+  console.log('[Mongo] Initializing local MongoDB (v7.0.14) instance on port 27017...');
   console.log('[Mongo] Data directory:', dbPath);
 
   try {
     const mongod = await MongoMemoryServer.create({
+      binary: {
+        version: '7.0.14',
+      },
       instance: {
         port: 27017,
         dbName: 'brandguard_dev',
@@ -28,7 +31,7 @@ async function start() {
 
     const uri = mongod.getUri('brandguard_dev');
     console.log('=======================================================');
-    console.log('🍃 Local MongoDB Server is active and listening!');
+    console.log('🍃 Local MongoDB Server (v7.0.14) is active and listening!');
     console.log('📡 URI:', uri);
     console.log('💾 Persistent Storage:', dbPath);
     console.log('=======================================================');

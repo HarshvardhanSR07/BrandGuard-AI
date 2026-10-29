@@ -11,13 +11,12 @@ import json
 import uuid
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
-import torch
-
 try:
+    import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
     from peft import PeftModel
     TRANSFORMERS_AVAILABLE = True
-except ImportError:
+except Exception as _e:
     TRANSFORMERS_AVAILABLE = False
 
 
@@ -170,3 +169,73 @@ class BrandGuardInferenceEngine:
             "rulebook_version": "v1.1",
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+
+
+def run_http_server(host: str = "127.0.0.1", port: int = 8000):
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+
+    print(f"[BrandGuard AI] Initializing Qwen3-4B LoRA inference server on http://{host}:{port}...")
+    engine = BrandGuardInferenceEngine()
+
+    class ReviewHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            if self.path != "/review":
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+
+            try:
+                data = json.loads(body)
+                brand_id = data.get("brand_id", "Unknown")
+                rules = data.get("rules", [])
+                ser = data.get("ser", {})
+                draft_text = data.get("draft_text", "")
+
+                review = engine.generate_review(brand_id, rules, ser, draft_text)
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps(review).encode("utf-8"))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+
+        def do_GET(self):
+            if self.path == "/health":
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "status": "ok",
+                    "model": "Qwen/Qwen3-4B-Instruct-2507",
+                    "adapter": "aliasLLM/brandguard-ai-model",
+                    "quantization": "4-bit (bitsandbytes)"
+                }).encode("utf-8"))
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+    server = HTTPServer((host, port), ReviewHandler)
+    print(f"[BrandGuard AI] Inference server listening at http://{host}:{port}/review")
+    print(f"[BrandGuard AI] Health check at http://{host}:{port}/health")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    import sys
+    if "--serve" in sys.argv:
+        port = 8000
+        for i, arg in enumerate(sys.argv):
+            if arg == "--port" and i + 1 < len(sys.argv):
+                port = int(sys.argv[i + 1])
+        run_http_server(port=port)
+    else:
+        print("BrandGuard AI Qwen3-4B LoRA Module.")
+        print("To start inference server: python scripts/brandguard_lora_inference.py --serve --port 8000")
+

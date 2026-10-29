@@ -65,13 +65,13 @@ export class BrandGuardAIService {
     });
 
     // First attempt
-    let rawOutput = await this.callModel(fullChatMLPrompt, brand_id, draft_text);
+    let rawOutput = await this.callModel(fullChatMLPrompt, brand_id, draft_text, rules, ser);
     let result = evaluateLogicalGates(rawOutput, serValidKeys, { brand_id });
 
     // Section 5: PATH C Structural Failure -> Retry once
     if (result.structuralFailure) {
       console.warn(`[BrandGuard AI] Gate 1 Structural Failure detected. Executing spec retry...`);
-      rawOutput = await this.callModel(fullChatMLPrompt, brand_id, draft_text);
+      rawOutput = await this.callModel(fullChatMLPrompt, brand_id, draft_text, rules, ser);
       result = evaluateLogicalGates(rawOutput, serValidKeys, { brand_id });
 
       // If still failing after retry, route to Human Moderator with error "AI System Failure."
@@ -85,8 +85,30 @@ export class BrandGuardAIService {
     return result;
   }
 
-  private async callModel(prompt: string, brand_id: string, draft_text: string): Promise<unknown> {
-    // If Hugging Face inference endpoint is configured
+  private async callModel(
+    prompt: string,
+    brand_id: string,
+    draft_text: string,
+    rules?: unknown,
+    ser?: unknown
+  ): Promise<unknown> {
+    // 1. If local or self-hosted Qwen3-4B LoRA inference server is running (scripts/brandguard_lora_inference.py)
+    const localInferenceUrl = process.env.AI_INFERENCE_URL || 'http://127.0.0.1:8000/review';
+    try {
+      const localRes = await fetch(localInferenceUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brand_id, rules, ser, draft_text }),
+        signal: AbortSignal.timeout(4000), // Quick check
+      });
+      if (localRes.ok) {
+        return await localRes.json();
+      }
+    } catch {
+      // Local server not running or timed out, proceed to remote HF
+    }
+
+    // 2. If dedicated Hugging Face Inference Endpoint is configured
     if (this.endpointUrl && this.hfToken) {
       try {
         const response = await fetch(this.endpointUrl, {
@@ -122,7 +144,7 @@ export class BrandGuardAIService {
       }
     }
 
-    // Deterministic simulation/mock when running without live GPU endpoint
+    // 3. Deterministic simulation/mock when running without active GPU service
     return this.generateDeterministicReview(brand_id, draft_text);
   }
 

@@ -22,7 +22,7 @@ export class BrandGuardAIService {
   private endpointUrl: string | undefined;
 
   constructor() {
-    this.hfToken = process.env.HF_TOKEN;
+    this.hfToken = process.env.HF_TOKEN || process.env.HF_ACCESS_KEY;
     this.endpointUrl = process.env.HF_INFERENCE_URL || process.env.AI_INFERENCE_URL;
   }
 

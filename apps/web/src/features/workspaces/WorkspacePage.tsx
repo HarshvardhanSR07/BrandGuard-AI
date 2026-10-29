@@ -59,7 +59,7 @@ export const WorkspacePage: React.FC = () => {
   const [autoQuarantineViolations, setAutoQuarantineViolations] = useState(true);
 
   // Integrations State
-  const [apiKey, setApiKey] = useState('hf_••••••••••••••••••••••••••••••••');
+  const [apiKey, setApiKey] = useState('HFAK••••••••••••••••••••••••••••');
   const [webhookUrl, setWebhookUrl] = useState('https://hooks.slack.com/services/T00/B00/XXXXX');
   const [isPinging, setIsPinging] = useState(false);
 

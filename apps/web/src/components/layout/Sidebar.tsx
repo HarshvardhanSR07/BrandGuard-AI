@@ -167,17 +167,20 @@ export const Sidebar: React.FC = () => {
       {/* Sidebar Footer with Help and User Profile */}
       <div className="px-3 lg:px-4 space-y-3">
         {/* Help Card */}
-        <div className="hidden lg:flex items-center justify-between p-2.5 rounded-xl border border-[#e8eee1] bg-[#f8faf5] cursor-pointer hover:border-[#dce2d7] transition-colors">
+        <div
+          onClick={() => navigate('/policies')}
+          className="hidden lg:flex items-center justify-between p-2.5 rounded-xl border border-[#e8eee1] bg-[#f8faf5] cursor-pointer hover:border-[#3f7449] hover:bg-[#eff6ed] transition-all group"
+        >
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#e7f1df] text-[#3f7449] flex items-center justify-center shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-[#e7f1df] text-[#3f7449] group-hover:bg-[#295d36] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
               <CircleHelp className="w-4 h-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-semibold text-[#202820]">Need a hand?</span>
+              <span className="text-xs font-semibold text-[#202820] group-hover:text-[#295d36]">Need a hand?</span>
               <span className="text-[10px] text-[#858d83]">Explore policy guide</span>
             </div>
           </div>
-          <ChevronRight className="w-3.5 h-3.5 text-[#858d83]" />
+          <ChevronRight className="w-3.5 h-3.5 text-[#858d83] group-hover:translate-x-0.5 group-hover:text-[#295d36] transition-all" />
         </div>
 
         {/* User Card */}

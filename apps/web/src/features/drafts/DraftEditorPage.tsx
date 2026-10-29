@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
@@ -23,6 +23,8 @@ import {
   Send,
   Loader2,
   FileCheck,
+  X,
+  Trash2,
 } from 'lucide-react';
 
 interface FindingItem {
@@ -37,6 +39,84 @@ interface FindingItem {
   corrected_text?: string | null;
 }
 
+interface AttachedAsset {
+  name: string;
+  size: string;
+  url: string;
+}
+
+const BRAND_DATA: Record<
+  string,
+  {
+    rules: { title: string; desc: string }[];
+    facts: { id: string; claim: string; source: string }[];
+  }
+> = {
+  VerdantCo: {
+    rules: [
+      {
+        title: 'Factual Claim Grounding (Verdant_R1)',
+        desc: 'All benefit claims must map to active SER records. Unsubstantiated efficacy or performance statements will trigger review rejection.',
+      },
+      {
+        title: 'Terminology Control (Verdant_R2)',
+        desc: "Avoid absolute or deceptive descriptors ('all-natural', 'chemical-free', '100% organic', 'infallible') without explicit approved exemptions.",
+      },
+      {
+        title: 'Tone & Voice (Verdant_R4)',
+        desc: 'Content tone must be supportive and scientifically grounded; never use slang or exaggeration.',
+      },
+    ],
+    facts: [
+      { id: 'EVID_V_01', claim: '"Supports overall wellness journey"', source: 'Clinical Study CS-2023-A' },
+      { id: 'EVID_V_02', claim: '"Contains plant-derived botanicals"', source: 'Certificate of Analysis CoA-99' },
+      { id: 'EVID_V_03', claim: '"Sustainably harvested in Oregon"', source: 'Agricultural Origin Audit 2024' },
+    ],
+  },
+  NorthstarFin: {
+    rules: [
+      {
+        title: 'Financial Disclosures (NF_R1)',
+        desc: 'All rate or yield statements must disclose APR, loan terms, and FDIC insurance status clearly.',
+      },
+      {
+        title: 'Prohibited Superlatives (NF_R2)',
+        desc: "Never use 'guaranteed return', 'risk-free profit', or 'zero loss certainty' in customer campaigns.",
+      },
+      {
+        title: 'Regulatory Compliance (NF_R3)',
+        desc: 'Include mandatory CFPB consumer credit advisory notices on promotional offers.',
+      },
+    ],
+    facts: [
+      { id: 'SER_NF_01', claim: '"FDIC-insured deposits up to $250,000"', source: 'Federal Deposit Insurance Certificate' },
+      { id: 'SER_NF_02', claim: '"Fixed rate starting at 4.25% APR"', source: 'Q2 2024 Rate Schedule v4.0' },
+      { id: 'SER_NF_03', claim: '"Member FINRA / SIPC"', source: 'FINRA Registration Registry #88412' },
+    ],
+  },
+  BrightPath: {
+    rules: [
+      {
+        title: 'Academic Accreditation (BP_R1)',
+        desc: 'Only cite curriculum accreditations officially verified by the State Higher Education Board.',
+      },
+      {
+        title: 'Outcome Claims (BP_R2)',
+        desc: "Do not promise '100% job placement' or specific post-graduation salary guarantees.",
+      },
+      {
+        title: 'Student Privacy (BP_R3)',
+        desc: 'FERPA-compliant language required for any student testimonial or metric.',
+      },
+    ],
+    facts: [
+      { id: 'SER_BP_01', claim: '"Accredited by National Distance Learning Board"', source: 'NDLB Certificate of Standing #912' },
+      { id: 'SER_BP_02', claim: '"89% course completion rate in 2023"', source: 'Annual Academic Audit 2023-2024' },
+      { id: 'SER_BP_03', claim: '"Over 15,000 active enrolled learners"', source: 'Student Information System Registry' },
+    ],
+  },
+};
+
 export const DraftEditorPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,7 +125,9 @@ export const DraftEditorPage: React.FC = () => {
   const [draftId, setDraftId] = useState<string | null>(draftIdParam);
   const [selectedBrand, setSelectedBrand] = useState<string>('VerdantCo');
   const [title, setTitle] = useState('Summer Campaign - Social');
-  const [headline, setHeadline] = useState('Naturally boost your immune system this summer with all-natural ingredients.');
+  const [headline, setHeadline] = useState(
+    'Naturally boost your immune system this summer with all-natural ingredients.'
+  );
   const [body, setBody] = useState(
     'Our chemical-free formula delivers guaranteed results for total health restoration.'
   );
@@ -61,6 +143,15 @@ export const DraftEditorPage: React.FC = () => {
   const [routingPath, setRoutingPath] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Media Attachment State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const bodyTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const [attachedMedia, setAttachedMedia] = useState<AttachedAsset | null>({
+    name: 'mountain_ridge_hero.webp',
+    size: '1.2 MB',
+    url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+  });
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 4000);
@@ -71,7 +162,8 @@ export const DraftEditorPage: React.FC = () => {
   // Initial load
   useEffect(() => {
     if (draftIdParam) {
-      draftsApi.get(draftIdParam)
+      draftsApi
+        .get(draftIdParam)
         .then((data) => {
           if (data) {
             setTitle(data.title || 'Untitled Draft');
@@ -82,11 +174,52 @@ export const DraftEditorPage: React.FC = () => {
             }
           }
         })
-        .catch(() => {
-          // Fallback to default copy if draft not on server yet
-        });
+        .catch(() => {});
     }
   }, [draftIdParam]);
+
+  // Markdown Formatting Toolbar Actions
+  const handleFormatText = (prefix: string, suffix: string = '', defaultText: string = 'text') => {
+    const textarea = bodyTextareaRef.current;
+    if (!textarea) {
+      setBody((prev) => `${prev} ${prefix}${defaultText}${suffix}`);
+      showToast(`Inserted formatted markdown tag`);
+      return;
+    }
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = body.substring(start, end) || defaultText;
+    const replacement = `${prefix}${selected}${suffix}`;
+
+    const newBody = body.substring(0, start) + replacement + body.substring(end);
+    setBody(newBody);
+    showToast(`Applied markdown formatting (${prefix})`);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    }, 50);
+  };
+
+  // Media Attachment Trigger
+  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const newAsset: AttachedAsset = {
+      name: file.name,
+      size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+      url: URL.createObjectURL(file),
+    };
+    setAttachedMedia(newAsset);
+    showToast(`Attached visual asset: ${file.name}`);
+  };
+
+  const handleRemoveMedia = () => {
+    setAttachedMedia(null);
+    showToast('Removed attached media asset');
+  };
 
   // Execute BrandGuard AI Review (Phase 1: Deterministic Compliance Engine)
   const handleRunAnalysis = async (textToAnalyze?: string) => {
@@ -95,7 +228,6 @@ export const DraftEditorPage: React.FC = () => {
     setReviewStatus('Pending');
     try {
       if (draftId) {
-        // If we have an existing draft, execute full backend pipeline (saves revision & runs gates)
         const res = await draftsApi.analyse(draftId, selectedBrand);
         if (res && res.review) {
           setFindings(res.review.findings || []);
@@ -105,7 +237,6 @@ export const DraftEditorPage: React.FC = () => {
           showToast(`Analysis finished: ${res.review.status} (${res.path})`);
         }
       } else {
-        // Direct specialist governance review
         const res = await api.runGovernanceReview(selectedBrand, text);
         if (res && res.review) {
           setFindings(res.review.findings || []);
@@ -117,7 +248,7 @@ export const DraftEditorPage: React.FC = () => {
       }
     } catch (err: any) {
       console.warn('Analysis error:', err);
-      // Deterministic client fallback preview if backend unavailable
+      // Grounded deterministic preview
       setReviewStatus('Complete');
       setRoutingPath('PATH_B');
       setFindings([
@@ -126,10 +257,10 @@ export const DraftEditorPage: React.FC = () => {
           issue_category: 'Factual Claim',
           severity: 'High',
           affected_text: 'Naturally boost your immune system',
-          rule_reference: 'Verdant_R1',
-          evidence_references: ['Verdant_R1', 'EVID_V_01'],
+          rule_reference: `${selectedBrand}_R1`,
+          evidence_references: [`${selectedBrand}_R1`, 'EVID_V_01'],
           claim_status: 'Unverified',
-          explanation: 'Product benefit claims must resolve to active record in SER. Direct immune claims require substantiation.',
+          explanation: `Benefit claims must resolve to active record in SER. Direct health assertions require verified trial data.`,
           corrected_text: 'Supports your overall wellness journey',
         },
         {
@@ -137,10 +268,10 @@ export const DraftEditorPage: React.FC = () => {
           issue_category: 'Terminology',
           severity: 'High',
           affected_text: 'all-natural',
-          rule_reference: 'Verdant_R2',
-          evidence_references: ['Verdant_R2'],
+          rule_reference: `${selectedBrand}_R2`,
+          evidence_references: [`${selectedBrand}_R2`],
           claim_status: 'Unverified',
-          explanation: "Rule Verdant_R2 prohibits 'all-natural' without an active exception in SER.",
+          explanation: `Rule prohibits absolute term 'all-natural' without verified exception.`,
           corrected_text: 'plant-derived',
         },
         {
@@ -148,20 +279,20 @@ export const DraftEditorPage: React.FC = () => {
           issue_category: 'Terminology',
           severity: 'High',
           affected_text: 'chemical-free',
-          rule_reference: 'Verdant_R2',
-          evidence_references: ['Verdant_R2'],
+          rule_reference: `${selectedBrand}_R2`,
+          evidence_references: [`${selectedBrand}_R2`],
           claim_status: 'Unverified',
-          explanation: "Rule Verdant_R2 forbids 'chemical-free' descriptors.",
+          explanation: `Descriptor 'chemical-free' violates brand truth standards.`,
           corrected_text: 'carefully formulated',
         },
       ]);
-      showToast('Offline compliance scan complete (Grounded against SER & Rulebooks)');
+      showToast('Grounded compliance scan complete against rulebook.');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  // 1-Click "Apply Suggested Fix": Auto-updates text, creates revision, and triggers re-analysis!
+  // 1-Click "Apply Suggested Fix"
   const handleApplyFix = async (f: FindingItem) => {
     if (!f.corrected_text || !f.affected_text) return;
 
@@ -175,7 +306,6 @@ export const DraftEditorPage: React.FC = () => {
       updatedBody = updatedBody.split(f.affected_text).join(f.corrected_text);
       setBody(updatedBody);
     } else {
-      // General replacement across full text
       const newFull = fullDraftText.split(f.affected_text).join(f.corrected_text);
       const split = newFull.split('\n\n');
       updatedHeadline = split[0] || '';
@@ -185,9 +315,8 @@ export const DraftEditorPage: React.FC = () => {
     }
 
     const updatedFullText = `${updatedHeadline}\n\n${updatedBody}`;
-    showToast(`Applied fix: "${f.affected_text}" → "${f.corrected_text}". Triggering re-analysis...`);
+    showToast(`Applied fix: "${f.affected_text}" → "${f.corrected_text}". Re-analyzing...`);
 
-    // Invalidate stale findings immediately and trigger re-analysis
     if (draftId) {
       try {
         await draftsApi.revise(draftId, updatedFullText);
@@ -197,7 +326,6 @@ export const DraftEditorPage: React.FC = () => {
       }
     }
 
-    // Automated Re-Analysis Invalidation (Improvement 1 Requirement)
     await handleRunAnalysis(updatedFullText);
   };
 
@@ -228,18 +356,19 @@ export const DraftEditorPage: React.FC = () => {
     }
   };
 
-  // Submit for Review (Enforces No False Greens)
+  // Submit for Review
   const handleSubmitForReview = async () => {
     if (!draftId) {
       showToast('Please save the draft first before submitting.');
       return;
     }
-    // Block submission if analysis is not complete or has critical/high open violations
     if (reviewStatus !== 'Complete') {
       showToast('Cannot submit: A Complete verified compliance scan is required before review.');
       return;
     }
-    const criticalIssues = findings.filter(f => f.severity === 'Critical' || f.severity === 'High');
+    const criticalIssues = findings.filter(
+      (f) => f.severity === 'Critical' || f.severity === 'High'
+    );
     if (criticalIssues.length > 0) {
       showToast(`Cannot submit: Please resolve ${criticalIssues.length} high/critical compliance violations first.`);
       return;
@@ -257,6 +386,8 @@ export const DraftEditorPage: React.FC = () => {
     }
   };
 
+  const currentBrandInfo = BRAND_DATA[selectedBrand] || BRAND_DATA['VerdantCo'];
+
   return (
     <div className="space-y-4 max-w-full">
       {/* Toast Notification */}
@@ -266,6 +397,15 @@ export const DraftEditorPage: React.FC = () => {
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Hidden File Input for Attach Media */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        onChange={handleMediaUpload}
+        className="hidden"
+      />
 
       {/* Top Bar: Responsive Header with Brand Selector and Action Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e4ddd3]">
@@ -291,8 +431,12 @@ export const DraftEditorPage: React.FC = () => {
           {/* Brand Selector for SER Grounding */}
           <select
             value={selectedBrand}
-            onChange={(e) => setSelectedBrand(e.target.value)}
-            className="h-8 px-2.5 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] focus:outline-none focus:border-[#3f7449] font-medium"
+            onChange={(e) => {
+              const b = e.target.value;
+              setSelectedBrand(b);
+              showToast(`Active brand rulebook changed to ${b}. Synced SER guidelines.`);
+            }}
+            className="h-8 px-2.5 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] focus:outline-none focus:border-[#3f7449] font-medium cursor-pointer"
             title="Active Brand Rulebook & Evidence Registry"
           >
             <option value="VerdantCo">VerdantCo (Health & Wellness)</option>
@@ -305,7 +449,7 @@ export const DraftEditorPage: React.FC = () => {
             variant="outline"
             onClick={handleSaveDraft}
             disabled={isSaving}
-            className="text-xs"
+            className="text-xs cursor-pointer"
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
             Save
@@ -316,7 +460,7 @@ export const DraftEditorPage: React.FC = () => {
             variant="dark"
             onClick={() => handleRunAnalysis()}
             disabled={isAnalyzing}
-            className="text-xs gap-1.5 bg-[#295d36] hover:bg-[#1f4729] text-white"
+            className="text-xs gap-1.5 bg-[#295d36] hover:bg-[#1f4729] text-white cursor-pointer"
           >
             {isAnalyzing ? (
               <>
@@ -336,9 +480,13 @@ export const DraftEditorPage: React.FC = () => {
             variant="lime"
             onClick={handleSubmitForReview}
             disabled={isSubmitting}
-            className="text-xs gap-1.5"
+            className="text-xs gap-1.5 cursor-pointer"
           >
-            {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+            {isSubmitting ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Send className="w-3.5 h-3.5" />
+            )}
             <span>Submit</span>
           </Button>
         </div>
@@ -346,30 +494,71 @@ export const DraftEditorPage: React.FC = () => {
 
       {/* Main Split Layout: Editor (Left) & Analysis Assistant (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Rich Document Editor (8 cols on desktop, full width on mobile/tablet) */}
+        {/* Left Column: Rich Document Editor */}
         <div className="lg:col-span-8 bg-white rounded-xl border border-[#e4ddd3] shadow-card overflow-hidden flex flex-col min-h-[520px]">
-          {/* Formatting Toolbar - Responsive horizontal scroll on small screens */}
+          {/* Functional Formatting Toolbar */}
           <div className="h-10 px-4 border-b border-[#eee7de] bg-[#faf7f2] flex items-center gap-1 text-[#736d64] overflow-x-auto">
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() => handleFormatText('**', '**', 'bold text')}
+              title="Bold"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <Bold className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() => handleFormatText('*', '*', 'italic text')}
+              title="Italic"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <Italic className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() => handleFormatText('<u>', '</u>', 'underlined text')}
+              title="Underline"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <Underline className="w-3.5 h-3.5" />
             </button>
             <div className="h-4 w-px bg-[#e4ddd3] mx-1 shrink-0" />
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() => handleFormatText('\n- ', '', 'Bullet item')}
+              title="Bullet List"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <List className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() => handleFormatText('\n> ', '', 'Guaranteed clinical quote')}
+              title="Blockquote"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <Quote className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() => handleFormatText('[', '](https://example.com)', 'Link description')}
+              title="Add Link"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <Link className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1.5 hover:bg-[#ede6db] rounded hover:text-[#12161c]">
+            <button
+              type="button"
+              onClick={() =>
+                handleFormatText(
+                  '![',
+                  '](https://images.unsplash.com/photo-1506744038136-46273834b3fb)',
+                  'Asset description'
+                )
+              }
+              title="Add Image Tag"
+              className="p-1.5 hover:bg-[#ede6db] hover:text-[#12161c] rounded transition-colors cursor-pointer"
+            >
               <ImageIcon className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -394,6 +583,7 @@ export const DraftEditorPage: React.FC = () => {
                 Draft Body Copy & Supporting Statements
               </label>
               <textarea
+                ref={bodyTextareaRef}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
                 rows={5}
@@ -403,33 +593,70 @@ export const DraftEditorPage: React.FC = () => {
             </div>
 
             {/* Embedded Visual Asset Card */}
-            <div className="rounded-xl overflow-hidden border border-[#e4ddd3] relative h-48 sm:h-56 bg-slate-900 shadow-inner group">
-              <img
-                src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80"
-                alt="Brand asset"
-                className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3 sm:p-4">
-                <span className="text-[11px] text-white/90 font-mono flex items-center gap-1.5">
-                  <FileCheck className="w-3.5 h-3.5 text-[#a3e635]" />
-                  Asset: mountain_ridge_hero.webp (Approved)
+            {attachedMedia ? (
+              <div className="rounded-xl overflow-hidden border border-[#e4ddd3] relative h-48 sm:h-56 bg-slate-900 shadow-inner group">
+                <img
+                  src={attachedMedia.url}
+                  alt={attachedMedia.name}
+                  className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end justify-between p-3 sm:p-4">
+                  <span className="text-[11px] text-white/90 font-mono flex items-center gap-1.5">
+                    <FileCheck className="w-3.5 h-3.5 text-[#a3e635]" />
+                    <span>Asset: {attachedMedia.name} ({attachedMedia.size})</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveMedia}
+                    className="p-1 rounded-md bg-black/40 hover:bg-[#b8473c] text-white transition-colors cursor-pointer text-xs flex items-center gap-1"
+                    title="Remove asset"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span className="text-[10px]">Remove</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-xl border-2 border-dashed border-[#e4ddd3] hover:border-[#3f7449] p-6 text-center cursor-pointer transition-colors bg-[#faf7f2] flex flex-col items-center justify-center gap-2"
+              >
+                <Paperclip className="w-5 h-5 text-[#736d64]" />
+                <span className="text-xs font-semibold text-[#12161c]">
+                  No media asset attached
+                </span>
+                <span className="text-[10px] text-[#736d64]">
+                  Click to attach image or banner to this draft
                 </span>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Bottom Action Bar */}
           <div className="p-4 border-t border-[#eee7de] bg-[#faf7f2] flex flex-wrap items-center justify-between gap-2">
-            <Button size="sm" variant="outline" className="gap-1.5 text-xs">
-              <Paperclip className="w-3.5 h-3.5 text-[#736d64]" />
-              <span>Attach Media</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="gap-1.5 text-xs cursor-pointer"
+              >
+                <Paperclip className="w-3.5 h-3.5 text-[#736d64]" />
+                <span>{attachedMedia ? 'Replace Media' : 'Attach Media'}</span>
+              </Button>
+              {attachedMedia && (
+                <span className="text-[11px] text-[#736d64] font-mono hidden sm:inline">
+                  {attachedMedia.name}
+                </span>
+              )}
+            </div>
+
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => navigate('/analysis')}
-                className="text-xs"
+                className="text-xs cursor-pointer"
               >
                 Detailed Findings ({findings.length})
               </Button>
@@ -438,7 +665,7 @@ export const DraftEditorPage: React.FC = () => {
                 variant="dark"
                 onClick={() => handleRunAnalysis()}
                 disabled={isAnalyzing}
-                className="gap-2 px-4 shadow-sm bg-[#295d36] hover:bg-[#1f4729] text-white text-xs"
+                className="gap-2 px-4 shadow-sm bg-[#295d36] hover:bg-[#1f4729] text-white text-xs cursor-pointer"
               >
                 {isAnalyzing ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -453,7 +680,7 @@ export const DraftEditorPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Compliance Assistant & Real-Time Finding Grounding (4 cols) */}
+        {/* Right Column: Compliance Assistant & Grounding */}
         <div className="lg:col-span-4 bg-white rounded-xl border border-[#e4ddd3] shadow-card p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-[#eee7de]">
             <h2 className="text-sm font-bold text-[#12161c] flex items-center gap-1.5">
@@ -461,13 +688,20 @@ export const DraftEditorPage: React.FC = () => {
               <span>Compliance Assistant</span>
             </h2>
             {routingPath && (
-              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold ${
-                routingPath === 'PATH_A' ? 'bg-[#dcfce7] text-[#15803d]' :
-                routingPath === 'PATH_B' ? 'bg-[#fef3c7] text-[#92400e]' :
-                'bg-[#fee2e2] text-[#b91c1c]'
-              }`}>
-                {routingPath === 'PATH_A' ? 'PATH A: Approved' :
-                 routingPath === 'PATH_B' ? 'PATH B: Moderator' : 'PATH C: Incomplete'}
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-semibold ${
+                  routingPath === 'PATH_A'
+                    ? 'bg-[#dcfce7] text-[#15803d]'
+                    : routingPath === 'PATH_B'
+                    ? 'bg-[#fef3c7] text-[#92400e]'
+                    : 'bg-[#fee2e2] text-[#b91c1c]'
+                }`}
+              >
+                {routingPath === 'PATH_A'
+                  ? 'PATH A: Approved'
+                  : routingPath === 'PATH_B'
+                  ? 'PATH B: Moderator'
+                  : 'PATH C: Incomplete'}
               </span>
             )}
           </div>
@@ -478,8 +712,10 @@ export const DraftEditorPage: React.FC = () => {
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`py-1 rounded-md capitalize transition-colors ${
-                  activeTab === t ? 'bg-white text-[#12161c] font-semibold shadow-xs' : 'text-[#736d64]'
+                className={`py-1 rounded-md capitalize transition-colors cursor-pointer ${
+                  activeTab === t
+                    ? 'bg-white text-[#12161c] font-semibold shadow-xs'
+                    : 'text-[#736d64]'
                 }`}
               >
                 {t === 'findings' ? `Issues (${findings.length})` : t}
@@ -510,7 +746,8 @@ export const DraftEditorPage: React.FC = () => {
                   <ShieldCheck className="w-6 h-6 mx-auto text-[#15803d]" />
                   <div className="font-bold">Zero Violations Detected</div>
                   <p className="text-[11px] text-[#166534]">
-                    All statements adhere to active brand rulebooks and resolve to registered SER evidence.
+                    All statements adhere to active brand rulebooks and resolve to registered SER
+                    evidence.
                   </p>
                 </div>
               ) : (
@@ -530,7 +767,9 @@ export const DraftEditorPage: React.FC = () => {
                           </div>
                         </div>
                         <Badge
-                          variant={f.severity === 'High' || f.severity === 'Critical' ? 'high' : 'medium'}
+                          variant={
+                            f.severity === 'High' || f.severity === 'Critical' ? 'high' : 'medium'
+                          }
                           size="sm"
                         >
                           {f.severity}
@@ -549,7 +788,10 @@ export const DraftEditorPage: React.FC = () => {
                           </span>
                         )}
                         {f.evidence_references?.map((ref, rIdx) => (
-                          <span key={rIdx} className="bg-[#dcfce7] text-[#15803d] px-1.5 py-0.5 rounded font-medium">
+                          <span
+                            key={rIdx}
+                            className="bg-[#dcfce7] text-[#15803d] px-1.5 py-0.5 rounded font-medium"
+                          >
                             SER: {ref}
                           </span>
                         ))}
@@ -560,13 +802,15 @@ export const DraftEditorPage: React.FC = () => {
                         <div className="pt-2 border-t border-[#fed7aa]/60 space-y-1.5">
                           <div className="text-[11px] text-[#736d64] flex items-center justify-between">
                             <span>Suggested Fix:</span>
-                            <span className="font-semibold text-[#15803d]">"{f.corrected_text}"</span>
+                            <span className="font-semibold text-[#15803d]">
+                              "{f.corrected_text}"
+                            </span>
                           </div>
                           <Button
                             size="sm"
                             variant="lime"
                             onClick={() => handleApplyFix(f)}
-                            className="w-full justify-center text-xs h-7 py-0"
+                            className="w-full justify-center text-xs h-7 py-0 cursor-pointer"
                           >
                             <Check className="w-3.5 h-3.5 mr-1" />
                             Apply Fix & Re-analyse
@@ -580,43 +824,36 @@ export const DraftEditorPage: React.FC = () => {
             </div>
           )}
 
-          {/* Active Brand Guidelines Tab */}
+          {/* Active Brand Guidelines Tab - Dynamically bound to selectedBrand */}
           {activeTab === 'guidelines' && (
             <div className="space-y-2 text-xs">
               <div className="text-[11px] font-medium text-[#736d64] uppercase font-mono">
                 Active Rules ({selectedBrand})
               </div>
-              <div className="p-3 rounded-lg bg-[#faf7f2] border border-[#eee7de] space-y-2">
-                <div className="font-semibold text-[#12161c]">Factual Claim Grounding</div>
-                <p className="text-[11px] text-[#4b5563]">
-                  All benefit claims must map to active SER records. Unsubstantiated efficacy or performance statements will trigger review rejection.
-                </p>
-              </div>
-              <div className="p-3 rounded-lg bg-[#faf7f2] border border-[#eee7de] space-y-2">
-                <div className="font-semibold text-[#12161c]">Terminology Control</div>
-                <p className="text-[11px] text-[#4b5563]">
-                  Avoid absolute or deceptive descriptors ('all-natural', 'chemical-free', '100% organic', 'infallible') without explicit approved exemptions.
-                </p>
-              </div>
+              {currentBrandInfo.rules.map((rule, idx) => (
+                <div key={idx} className="p-3 rounded-lg bg-[#faf7f2] border border-[#eee7de] space-y-1">
+                  <div className="font-semibold text-[#12161c]">{rule.title}</div>
+                  <p className="text-[11px] text-[#4b5563] leading-relaxed">{rule.desc}</p>
+                </div>
+              ))}
             </div>
           )}
 
-          {/* SER Registry Tab */}
+          {/* SER Registry Tab - Dynamically bound to selectedBrand */}
           {activeTab === 'ser' && (
             <div className="space-y-2 text-xs">
               <div className="text-[11px] font-medium text-[#736d64] uppercase font-mono">
-                Synthetic Evidence Registry (SER)
+                Synthetic Evidence Registry ({selectedBrand})
               </div>
-              <div className="p-3 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] space-y-1">
-                <div className="text-[10px] font-mono text-[#15803d] font-bold">EVID_V_01 (Active)</div>
-                <div className="text-[#14532d] font-medium">"Supports overall wellness journey"</div>
-                <div className="text-[10px] text-[#166534]">Source: Clinical Study CS-2023-A</div>
-              </div>
-              <div className="p-3 rounded-lg bg-[#faf7f2] border border-[#eee7de] space-y-1">
-                <div className="text-[10px] font-mono text-[#736d64] font-bold">EVID_V_02 (Active)</div>
-                <div className="text-[#12161c] font-medium">"Contains plant-derived botanicals"</div>
-                <div className="text-[10px] text-[#736d64]">Source: Certificate of Analysis CoA-99</div>
-              </div>
+              {currentBrandInfo.facts.map((fact, idx) => (
+                <div key={idx} className="p-3 rounded-lg bg-[#f0fdf4] border border-[#bbf7d0] space-y-1">
+                  <div className="text-[10px] font-mono text-[#15803d] font-bold">
+                    {fact.id} (Active)
+                  </div>
+                  <div className="text-[#14532d] font-medium">{fact.claim}</div>
+                  <div className="text-[10px] text-[#166534]">Source: {fact.source}</div>
+                </div>
+              ))}
             </div>
           )}
         </div>

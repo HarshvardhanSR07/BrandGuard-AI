@@ -32,11 +32,17 @@ export const createApp = (): Application => {
   // Public Health & Engine Status
   app.get('/api/health', (req, res) => {
     const token = process.env.HF_TOKEN || process.env.HF_ACCESS_KEY;
+    const modelId = process.env.HF_MODEL_ID || 'aliasLLM/brandguard-ai-model';
+    const endpoint =
+      process.env.HF_INFERENCE_URL ||
+      process.env.AI_INFERENCE_URL ||
+      `https://api-inference.huggingface.co/models/${modelId}`;
     res.json({
       status: 'ok',
       apiKeyConfigured: !!token,
       keyPrefix: token ? `${token.substring(0, 4)}...` : null,
-      modelId: process.env.HF_MODEL_ID || 'aliasLLM/brandguard-ai-model',
+      modelId,
+      inferenceEndpoint: endpoint,
       engineMode: token ? 'API Token Enabled' : 'Offline Deterministic Grounding',
     });
   });

@@ -23,7 +23,10 @@ export class BrandGuardAIService {
 
   constructor() {
     this.hfToken = process.env.HF_TOKEN || process.env.HF_ACCESS_KEY;
-    this.endpointUrl = process.env.HF_INFERENCE_URL || process.env.AI_INFERENCE_URL;
+    this.endpointUrl =
+      process.env.HF_INFERENCE_URL ||
+      process.env.AI_INFERENCE_URL ||
+      `https://api-inference.huggingface.co/models/${process.env.HF_MODEL_ID || 'aliasLLM/brandguard-ai-model'}`;
   }
 
   /**

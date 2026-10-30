@@ -23,13 +23,15 @@ export const asyncHandler =
     fn(req, res, next).catch(next);
   };
 
-/** Step 1: verify the Bearer token (and re-check the user in the DB). Tokens are never read from URLs and never logged. */
+/** Step 1: verify the Bearer token or HttpOnly cookie (and re-check the user in the DB). Tokens are never read from URLs and never logged. */
 export function authenticate(): RequestHandler {
   return asyncHandler(async (req, _res, next) => {
     const header = req.headers.authorization;
     const match = typeof header === 'string' ? /^Bearer ([A-Za-z0-9._~+/=-]+)$/i.exec(header) : null;
-    if (!match) throw unauthenticated();
-    req.auth = await authenticateToken(match[1]);
+    const cookieToken = (req as any).cookies?.brandguard_token;
+    const token = match ? match[1] : cookieToken;
+    if (!token) throw unauthenticated();
+    req.auth = await authenticateToken(token);
     next();
   });
 }
@@ -70,7 +72,7 @@ export function getCtx(req: Request): AccessContext {
 /** Mount LAST. Never leaks stack traces, query text or request bodies. */
 export function errorHandler(): ErrorRequestHandler {
   return (err, _req, res, _next) => {
-    if (err instanceof AppError) {
+    if (err instanceof AppError || err?.name === 'AppError' || (typeof err?.status === 'number' && err?.code)) {
       res.status(err.status).json({ error: { code: err.code, message: err.message } });
       return;
     }

@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import {
   createAuthRouter,
   errorHandler,
@@ -28,6 +29,7 @@ export const createApp = (): Application => {
   // Security headers & CORS
   app.use(helmet());
   app.use(cors({ origin: true, credentials: true }));
+  app.use(cookieParser());
   app.use(express.json({ limit: '1mb' }));
 
   // Public Health & Engine Status

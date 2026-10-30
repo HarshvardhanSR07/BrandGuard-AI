@@ -20,6 +20,13 @@ const schema = z
     REQUIRE_COMPLETE_ANALYSIS_FOR_APPROVAL: z.enum(['on', 'off']).default('off'),
     LOGIN_RATE_MAX: z.coerce.number().int().positive().default(10),
     LOGIN_RATE_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
+    GOOGLE_CLIENT_ID: z.string().optional(),
+    GOOGLE_CLIENT_SECRET: z.string().optional(),
+    MICROSOFT_CLIENT_ID: z.string().optional(),
+    MICROSOFT_TENANT_ID: z.string().default('common'),
+    FRONTEND_URL: z.string().optional(),
+    BACKEND_URL: z.string().optional(),
+    SESSION_SECRET: z.string().optional(),
   })
   .refine((e) => e.NODE_ENV !== 'production' || e.BCRYPT_COST >= 10, {
     message: 'BCRYPT_COST must be >= 10 in production',

@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { AuthenticateWithRedirectCallback } from '@clerk/clerk-react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { PageSkeleton } from '../components/layout/PageSkeleton';
 
@@ -64,6 +65,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: withSuspense(LoginPage),
+  },
+  {
+    path: '/sso-callback',
+    element: <AuthenticateWithRedirectCallback signInForceRedirectUrl="/dashboard" signUpForceRedirectUrl="/dashboard" />,
   },
   // Main Application Shell
   {

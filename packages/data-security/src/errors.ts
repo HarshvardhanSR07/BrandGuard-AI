@@ -1,5 +1,6 @@
 export type ErrorCode =
   | 'UNAUTHENTICATED' | 'FORBIDDEN' | 'NOT_FOUND' | 'VALIDATION' | 'CONFLICT'
+  | 'ACCOUNT_LINKING_REQUIRED'
   | 'INVALID_TRANSITION' | 'SELF_REVIEW_FORBIDDEN' | 'EVIDENCE_INVALID' | 'RATE_LIMITED' | 'INTERNAL';
 
 /** The only error type routes should expect from this package (plus ZodError, handled by errorHandler). */
@@ -21,6 +22,8 @@ export const forbidden = (msg = 'You do not have permission to do this') => new 
 export const notFound = (what = 'Resource') => new AppError('NOT_FOUND', `${what} not found`, 404);
 export const validation = (msg: string, details?: unknown) => new AppError('VALIDATION', msg, 400, details);
 export const conflict = (msg: string) => new AppError('CONFLICT', msg, 409);
+export const accountLinkingRequired = (msg = 'Account linking required', details?: unknown) =>
+  new AppError('ACCOUNT_LINKING_REQUIRED', msg, 409, details);
 export const invalidTransition = (from: string, to: string) =>
   new AppError('INVALID_TRANSITION', `Cannot move from "${from}" to "${to}"`, 409);
 export const selfReview = () =>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser, UserButton } from '@clerk/clerk-react';
 import { useAuth } from '../../hooks/useAuth';
 import { BreadcrumbNav } from './BreadcrumbNav';
 import {
@@ -19,6 +20,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenCommandMenu }) => {
   const { role, loginAs } = useAuth();
+  const { isSignedIn, user: clerkUser } = useUser();
   const navigate = useNavigate();
 
   const [roleOpen, setRoleOpen] = useState(false);
@@ -234,14 +236,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
           )}
         </div>
 
-        {/* User Avatar Circle: Lavender/Purple with Initial A */}
-        <div
-          onClick={() => navigate('/settings')}
-          className="w-9 h-9 rounded-full bg-[#c7d2fe] text-[#4338ca] font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs hover:ring-2 hover:ring-[#818cf8]/50 transition-all shrink-0"
-          title="User Account"
-        >
-          A
-        </div>
+        {/* User Avatar Circle: Shows Clerk user avatar or persona initials */}
+        {isSignedIn && clerkUser ? (
+          <div className="shrink-0 flex items-center justify-center">
+            <UserButton afterSignOutUrl="/login" />
+          </div>
+        ) : (
+          <div
+            onClick={() => navigate('/settings')}
+            className="w-9 h-9 rounded-full bg-[#c7d2fe] text-[#4338ca] font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs hover:ring-2 hover:ring-[#818cf8]/50 transition-all shrink-0"
+            title="User Account"
+          >
+            A
+          </div>
+        )}
       </div>
     </header>
   );

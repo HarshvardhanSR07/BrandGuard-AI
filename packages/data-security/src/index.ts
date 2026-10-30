@@ -18,7 +18,22 @@ export { TRANSITIONS, DECISION_TO_STATUS, canTransition } from './security/state
 export { resolveAccessContext, type AccessContext } from './security/context';
 export { hashPassword } from './security/password';
 export { createRateLimiter } from './security/rateLimit';
-export { login, authenticateToken, listMyWorkspaces, revokeAllTokens, changeOwnPassword, deactivateUser, type LoginResult } from './services/authService';
+export {
+  login,
+  register,
+  authenticateGoogle,
+  authenticateMicrosoft,
+  getCurrentUserProfile,
+  authenticateToken,
+  listMyWorkspaces,
+  revokeAllTokens,
+  changeOwnPassword,
+  deactivateUser,
+  type LoginResult,
+  type UserProfileResponse,
+} from './services/authService';
+export * as oauthVerifier from './security/oauthVerifier';
+export { verifyGoogleIdToken, verifyMicrosoftIdToken, type VerifiedGoogleProfile, type VerifiedMicrosoftProfile } from './security/oauthVerifier';
 
 // express glue
 export { authenticate, workspaceContext, requirePermission, getCtx, asyncHandler, errorHandler } from './http/middleware';

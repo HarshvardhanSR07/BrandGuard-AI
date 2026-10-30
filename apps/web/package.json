@@ -10,6 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.27.0",
+    "@clerk/clerk-react": "^5.61.11",
     "@types/three": "^0.186.0",
     "clsx": "^2.1.1",
     "framer-motion": "^14.6.0",

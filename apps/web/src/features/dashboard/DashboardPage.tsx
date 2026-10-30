@@ -11,21 +11,26 @@ import {
   Mail,
   Globe,
   BookOpen,
+  Monitor,
+  FileCheck2,
+  Folder,
+  Users,
   CheckCircle2,
-  AlertTriangle,
+  AlertCircle,
   Clock,
   Sparkles,
   ChevronDown,
+  ChevronRight,
   Check,
   X,
-  Upload,
   LockKeyhole,
   ShieldAlert,
   ShieldCheck,
-  Activity,
-  Filter,
+  BarChart3,
+  MoreVertical,
+  Plus,
+  Lightbulb,
 } from 'lucide-react';
-import { Mascot } from '../../components/ui/Mascot';
 import { useAuth } from '../../hooks/useAuth';
 
 interface Campaign {
@@ -36,7 +41,7 @@ interface Campaign {
   grade: string;
   score: number;
   progress: number;
-  status: 'Completed' | 'In review' | 'In analysis' | 'Changes requested';
+  status: 'Completed' | 'In review' | 'Needs review';
   icon: React.ComponentType<{ className?: string }>;
   iconBg: string;
   iconColor: string;
@@ -57,14 +62,14 @@ const initialCampaigns: Campaign[] = [
     id: 'DRF-204',
     title: 'Summer Campaign - Social',
     category: 'Social Media',
-    timeSpent: '120 Hours active',
-    grade: '92/100 Compliance Score',
+    timeSpent: '120 hours active',
+    grade: '92/100',
     score: 92,
-    progress: 100,
+    progress: 92,
     status: 'Completed',
     icon: Globe,
-    iconBg: 'bg-[#eff6ed]',
-    iconColor: 'text-[#295d36]',
+    iconBg: 'bg-[#ecfdf5]',
+    iconColor: 'text-[#16a34a]',
     content: 'Experience effortless comfort for sunny horizons. Thoughtfully engineered with 62% recycled fibers. Discover the summer edition.',
     issues: 1,
   },
@@ -72,14 +77,14 @@ const initialCampaigns: Campaign[] = [
     id: 'DRF-202',
     title: 'Product Brochure v2',
     category: 'Print & Digital',
-    timeSpent: '18 Hours active',
-    grade: '78/100 Compliance Score',
+    timeSpent: '18 hours active',
+    grade: '78/100',
     score: 78,
-    progress: 20,
+    progress: 78,
     status: 'In review',
     icon: BookOpen,
-    iconBg: 'bg-[#f3effb]',
-    iconColor: 'text-[#7657a7]',
+    iconBg: 'bg-[#f5f3ff]',
+    iconColor: 'text-[#8b5cf6]',
     content: 'The most comfortable fit for every journey. Built with unmatched precision and guaranteed lifetime durability.',
     issues: 2,
   },
@@ -87,31 +92,46 @@ const initialCampaigns: Campaign[] = [
     id: 'DRF-203',
     title: 'Email - New Pricing',
     category: 'Direct Email',
-    timeSpent: '64 Hours active',
-    grade: '68/100 Compliance Score',
-    score: 68,
-    progress: 74,
-    status: 'In review',
+    timeSpent: '6 hours active',
+    grade: '65/100',
+    score: 65,
+    progress: 65,
+    status: 'Needs review',
     icon: Mail,
-    iconBg: 'bg-[#fff6e5]',
-    iconColor: 'text-[#a36d24]',
+    iconBg: 'bg-[#fff7ed]',
+    iconColor: 'text-[#ea580c]',
     content: 'Special member-exclusive rates valid until 31 October. Upgrade your plan and enjoy uninterrupted access.',
     issues: 3,
   },
   {
-    id: 'DRF-201',
-    title: 'Website Hero Section',
+    id: 'DRF-205',
+    title: 'Landing Page - Enterprise',
     category: 'Web Experience',
-    timeSpent: '0 Hours active',
-    grade: 'Pending First Scan',
-    score: 0,
-    progress: 0,
-    status: 'In analysis',
-    icon: FileText,
-    iconBg: 'bg-[#eef4ff]',
-    iconColor: 'text-[#456fba]',
-    content: 'Thoughtful essentials for the everyday. Discover lasting comfort and considered design across every touchpoint.',
-    issues: 0,
+    timeSpent: '32 hours active',
+    grade: '88/100',
+    score: 88,
+    progress: 88,
+    status: 'Completed',
+    icon: Monitor,
+    iconBg: 'bg-[#eff6ff]',
+    iconColor: 'text-[#2563eb]',
+    content: 'Enterprise-grade security and governance built for modern Fortune 500 brand marketing workflows.',
+    issues: 1,
+  },
+  {
+    id: 'DRF-206',
+    title: 'Influencer Guidelines',
+    category: 'Brand Governance',
+    timeSpent: '12 hours active',
+    grade: '73/100',
+    score: 73,
+    progress: 73,
+    status: 'In review',
+    icon: FileCheck2,
+    iconBg: 'bg-[#fffbeb]',
+    iconColor: 'text-[#d97706]',
+    content: 'Mandatory FTC disclosure benchmarks and prohibited comparative claims for social ambassador partnerships.',
+    issues: 2,
   },
 ];
 
@@ -157,17 +177,66 @@ const sampleFindings: Record<string, Finding[]> = {
       fix: 'Capitalize “Summer Edit” per product vocabulary catalog.',
     },
   ],
-  'DRF-201': [],
+  'DRF-205': [
+    {
+      severity: 'Low',
+      title: 'SLA disclaimer verification',
+      detail: 'Enterprise uptime guarantees require standard footnote reference.',
+      source: 'Legal terms v2.3',
+      fix: 'Add footnote link to service level agreements page.',
+    },
+  ],
+  'DRF-206': [
+    {
+      severity: 'Medium',
+      title: 'FTC Disclosure placement',
+      detail: 'Sponsored hashtag must appear in the first 3 lines of video caption.',
+      source: 'Influencer Endorsement Policy · Section 2.1',
+      fix: 'Explicitly enforce #Ad placement above the fold.',
+    },
+  ],
 };
+
+// 28 days of bar chart data
+const barChartData = [
+  { date: 'Jun 1', height: 42, active: false },
+  { date: 'Jun 2', height: 28, active: false },
+  { date: 'Jun 3', height: 35, active: false },
+  { date: 'Jun 4', height: 48, active: false },
+  { date: 'Jun 5', height: 52, active: false },
+  { date: 'Jun 6', height: 40, active: false },
+  { date: 'Jun 7', height: 58, active: false },
+  { date: 'Jun 8', height: 45, active: false },
+  { date: 'Jun 9', height: 50, active: false },
+  { date: 'Jun 10', height: 60, active: false },
+  { date: 'Jun 11', height: 48, active: false },
+  { date: 'Jun 12', height: 55, active: false },
+  { date: 'Jun 13', height: 68, active: false },
+  { date: 'Jun 14', height: 85, active: true, scans: 28 }, // Peak highlighted
+  { date: 'Jun 15', height: 62, active: false },
+  { date: 'Jun 16', height: 54, active: false },
+  { date: 'Jun 17', height: 49, active: false },
+  { date: 'Jun 18', height: 58, active: false },
+  { date: 'Jun 19', height: 64, active: false },
+  { date: 'Jun 20', height: 42, active: false },
+  { date: 'Jun 21', height: 50, active: false },
+  { date: 'Jun 22', height: 46, active: false },
+  { date: 'Jun 23', height: 55, active: false },
+  { date: 'Jun 24', height: 60, active: false },
+  { date: 'Jun 25', height: 52, active: false },
+  { date: 'Jun 26', height: 48, active: false },
+  { date: 'Jun 27', height: 44, active: false },
+  { date: 'Jun 28', height: 50, active: false },
+];
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
 
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
-  const [filterType, setFilterType] = useState<'All' | 'Needs review' | 'In analysis' | 'Completed'>('All');
-  const [period, setPeriod] = useState<'Last 7 days' | 'Last month' | 'Last quarter'>('Last month');
-  const [periodOpen, setPeriodOpen] = useState(false);
+  const [filterType, setFilterType] = useState<'All' | 'Needs review' | 'Completed'>('All');
+  const [progressTab, setProgressTab] = useState<'Scan Activity' | 'Compliance Score' | 'Issue Types'>('Scan Activity');
+  const [activityTab, setActivityTab] = useState<'All' | 'Scans' | 'Approvals' | 'Comments'>('All');
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [editorCopy, setEditorCopy] = useState('');
   const [toastMessage, setToastMessage] = useState('');
@@ -198,14 +267,6 @@ export const DashboardPage: React.FC = () => {
       .catch(() => {});
   }, []);
 
-  const totalFindings =
-    (analytics.findingsByDisposition.open || 0) +
-    (analytics.findingsByDisposition.accepted || 0) +
-    (analytics.findingsByDisposition.dismissed || 0) || 28;
-  const resolvedFindings =
-    (analytics.findingsByDisposition.accepted || 0) + (analytics.findingsByDisposition.dismissed || 0) || 24;
-  const resolutionRate = Math.round((resolvedFindings / totalFindings) * 100);
-
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
@@ -221,7 +282,7 @@ export const DashboardPage: React.FC = () => {
     setCampaigns((prev) =>
       prev.map((c) =>
         c.id === selectedCampaign.id
-          ? { ...c, status: 'Completed', score: 100, progress: 100, grade: '100/100 Compliance Score' }
+          ? { ...c, status: 'Completed', score: 100, progress: 100, grade: '100/100' }
           : c
       )
     );
@@ -234,7 +295,7 @@ export const DashboardPage: React.FC = () => {
     setCampaigns((prev) =>
       prev.map((c) =>
         c.id === selectedCampaign.id
-          ? { ...c, status: 'Changes requested' }
+          ? { ...c, status: 'Needs review' }
           : c
       )
     );
@@ -244,14 +305,13 @@ export const DashboardPage: React.FC = () => {
 
   const filteredCampaigns = campaigns.filter((camp) => {
     if (filterType === 'All') return true;
-    if (filterType === 'Needs review') return camp.status === 'In review';
-    if (filterType === 'In analysis') return camp.status === 'In analysis';
+    if (filterType === 'Needs review') return camp.status === 'Needs review' || camp.status === 'In review';
     if (filterType === 'Completed') return camp.status === 'Completed';
     return true;
   });
 
   return (
-    <div className="space-y-6 text-[#202820] font-sans select-none pb-12">
+    <div className="space-y-5 text-[#111827] font-sans select-none pb-12">
       {/* Toast Notification Banner */}
       <AnimatePresence>
         {toastMessage && (
@@ -261,7 +321,7 @@ export const DashboardPage: React.FC = () => {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="fixed top-6 right-8 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-[#dce2d7] shadow-[0_12px_32px_rgba(26,43,25,0.12)] text-xs text-[#202820]"
           >
-            <span className="w-5 h-5 rounded-full bg-[#eff6ed] text-[#295d36] flex items-center justify-center font-bold">
+            <span className="w-5 h-5 rounded-full bg-[#eff6ed] text-[#1e4a2b] flex items-center justify-center font-bold">
               <Check className="w-3 h-3" />
             </span>
             <span className="font-medium">{toastMessage}</span>
@@ -277,104 +337,587 @@ export const DashboardPage: React.FC = () => {
       </AnimatePresence>
 
       {/* ========================================================= */}
-      {/* TOP HERO BANNER: Retaining UI Layout, Clean Color Styling */}
+      {/* 1. TOP HERO BANNER: Deep Forest Emerald with LAX AI Mascot*/}
       {/* ========================================================= */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="relative rounded-3xl bg-gradient-to-r from-[#121c14] via-[#1a2c1f] to-[#111a13] border border-[#233527] p-7 lg:p-9 shadow-[0_15px_35px_rgba(26,43,25,0.15)] overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6"
-      >
-        {/* Subtle Organic Radial Glows */}
-        <div className="absolute top-0 right-1/4 w-80 h-80 rounded-full bg-[#3f7449]/15 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-10 w-96 h-96 rounded-full bg-[#d7ef8b]/10 blur-3xl pointer-events-none" />
+      <div className="relative rounded-3xl bg-gradient-to-r from-[#07190d] via-[#0c2415] to-[#071a0e] border border-[#1a3d24] p-6 sm:p-8 lg:p-9 shadow-sm overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+        {/* Background Radial Glow Behind Mascot */}
+        <div className="absolute right-20 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#22c55e]/15 blur-3xl pointer-events-none" />
+        <div className="absolute left-1/3 bottom-0 w-72 h-72 rounded-full bg-[#10b981]/10 blur-3xl pointer-events-none" />
 
-        {/* Left Headline & CTA */}
-        <div className="space-y-4 max-w-lg z-10 text-white">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1e3323] border border-[#3f7449]/50 text-[11px] font-mono text-[#d7ef8b]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#d7ef8b] animate-pulse" />
+        {/* Top-Right LAX AI Badge */}
+        <div className="absolute top-5 right-6 z-20 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0e2a17] border border-[#1e4a2b] text-[11px] font-bold text-[#86efac] shadow-xs">
+          <Sparkles className="w-3 h-3 text-[#4ade80]" />
+          <span>LAX AI</span>
+        </div>
+
+        {/* Left Headline & Action Buttons */}
+        <div className="space-y-3.5 max-w-lg z-10 text-white">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0f2d18] border border-[#225431] text-[11px] font-medium text-[#86efac]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" />
             <span>Autonomous Brand Guard · Active</span>
           </div>
 
-          <h1 className="text-3xl lg:text-4xl font-display font-medium tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-white leading-[1.18]">
             The study of the <br />
-            <span className="italic font-light text-white/90">structure of brand safety.</span>
+            <span className="italic text-[#86efac] font-serif">structure of brand safety.</span>
           </h1>
 
-          <p className="text-xs text-[#a0ad9c] leading-relaxed">
+          <p className="text-xs sm:text-[13px] text-[#a3b8a6] leading-relaxed max-w-md">
             Continuously auditing copy, claims, and tone against verified truth benchmarks.
           </p>
 
-          <div className="pt-2">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+          <div className="flex items-center gap-3 pt-2">
+            <button
+              type="button"
               onClick={() => navigate('/analysis')}
-              className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#3f7449] hover:bg-[#295d36] text-white text-xs font-semibold shadow-lg shadow-[#295d36]/30 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs font-semibold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
             >
-              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
                 <Play className="w-2.5 h-2.5 fill-white text-white ml-0.5" />
-              </div>
-              <span>CONTINUE ANALYSIS</span>
-            </motion.button>
+              </span>
+              <span>Continue Analysis</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/governance')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-medium backdrop-blur-sm transition-all cursor-pointer"
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-[#86efac]" />
+              <span>View Report</span>
+            </button>
           </div>
         </div>
 
-        {/* Right Graphic: Interactive Calibrated LAX Mascot */}
-        <div className="relative z-10 flex items-center justify-center shrink-0 pr-4">
-          <motion.div
-            animate={{ y: [0, -6, 0] }}
-            transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
-            className="relative w-56 sm:w-64 h-52 sm:h-60 flex items-center justify-center"
-          >
-            {/* Mascot Stage Card with cursor tracking */}
-            <div
-              className="w-48 h-48 rounded-2xl overflow-hidden relative shadow-2xl border border-[#2c4131] bg-[#142217]/90 p-2 flex items-center justify-center group cursor-pointer"
-              title="LAX Brand Guardian · Click for reaction"
+        {/* Right Graphic: LAX Chibi Mascot with Orbital Aura & Status Pills */}
+        <div className="relative z-10 flex items-center gap-4 sm:gap-6 shrink-0 mt-4 md:mt-0">
+          {/* Orbital Rings around mascot */}
+          <div className="relative flex items-center justify-center">
+            {/* Concentric rings */}
+            <div className="absolute w-44 h-44 rounded-full border border-[#22c55e]/25 animate-[spin_20s_linear_infinite] pointer-events-none" />
+            <div className="absolute w-36 h-36 rounded-full border border-[#86efac]/20 pointer-events-none" />
+            <div className="absolute w-28 h-28 rounded-full bg-gradient-to-tr from-[#22c55e]/20 to-transparent blur-md pointer-events-none" />
+
+            {/* Chibi Mascot */}
+            <motion.div
+              animate={{ y: [0, -5, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+              className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center"
             >
-              <Mascot
-                directions="/mascots/lax-directions.webp?v=3"
-                reactions="/mascots/lax-reactions.webp?v=3"
-                size={160}
-                label="LAX Mascot"
+              <img
+                src="/lax-icon.png"
+                alt="LAX Autonomous Mascot"
+                className="w-28 h-28 sm:w-32 sm:h-32 object-contain filter drop-shadow-[0_12px_24px_rgba(34,197,94,0.35)]"
               />
+            </motion.div>
+          </div>
 
-              <div className="absolute top-2.5 right-2.5 bg-[#1e3323]/95 text-[#d7ef8b] text-[9px] font-bold px-2 py-0.5 rounded-full border border-[#3f7449]/50 flex items-center gap-1 shadow-xs">
-                <Sparkles className="w-2.5 h-2.5" />
-                <span>LAX AI</span>
+          {/* 4 Floating Status Check Pills */}
+          <div className="flex flex-col gap-2 z-10">
+            {[
+              'Scanning content...',
+              'Checking claims...',
+              'Analyzing tone...',
+              'Verifying sources...',
+            ].map((step) => (
+              <div
+                key={step}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c2314]/85 border border-[#1e4a2b]/80 backdrop-blur-md text-[#d1fae5] text-[11px] font-medium shadow-2xs"
+              >
+                <span className="w-4 h-4 rounded-full bg-[#10b981]/30 text-[#4ade80] flex items-center justify-center text-[10px] shrink-0">
+                  <Check className="w-2.5 h-2.5 stroke-[3]" />
+                </span>
+                <span className="truncate">{step}</span>
               </div>
-            </div>
-
-            {/* Glowing Backlight */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-[#3f7449]/25 to-[#d7ef8b]/15 blur-2xl -z-10 rounded-full pointer-events-none" />
-          </motion.div>
+            ))}
+          </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* ========================================================= */}
-      {/* LOWER SECTION: Two Columns (Active Campaigns & Progress)  */}
+      {/* 2. METRIC STAT CARDS ROW: 4 Clean Cards with Sparklines   */}
       {/* ========================================================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Card 1: Total Scans */}
+        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5 text-[#10b981]" />
+            </div>
+            <div>
+              <span className="text-xs text-[#6b7280] font-medium block">Total Scans</span>
+              <div className="text-2xl font-bold text-[#111827] mt-0.5">124</div>
+              <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                <span>↑</span> +12% from last month
+              </span>
+            </div>
+          </div>
+          {/* Sparkline Wave SVG */}
+          <div className="w-16 h-8 shrink-0">
+            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+              <path
+                d="M2 24 C 14 26, 24 16, 36 20 C 46 24, 54 8, 62 10"
+                stroke="#10b981"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Card 2: Compliance Score */}
+        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+              <ShieldCheck className="w-5 h-5 text-[#10b981]" />
+            </div>
+            <div>
+              <span className="text-xs text-[#6b7280] font-medium block">Compliance Score</span>
+              <div className="text-2xl font-bold text-[#111827] mt-0.5">
+                92 <span className="text-sm font-normal text-[#9ca3af]">/100</span>
+              </div>
+              <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                <span>↑</span> +4% from last month
+              </span>
+            </div>
+          </div>
+          {/* Sparkline Wave SVG */}
+          <div className="w-16 h-8 shrink-0">
+            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+              <path
+                d="M2 28 C 16 30, 26 18, 38 22 C 48 24, 52 10, 62 8"
+                stroke="#10b981"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Card 3: Drafts Approved */}
+        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0">
+              <Folder className="w-5 h-5 text-[#d97706]" />
+            </div>
+            <div>
+              <span className="text-xs text-[#6b7280] font-medium block">Drafts Approved</span>
+              <div className="text-2xl font-bold text-[#111827] mt-0.5">36</div>
+              <span className="text-[11px] text-[#d97706] font-medium flex items-center gap-0.5 mt-0.5">
+                <span>↑</span> 70% pass rate
+              </span>
+            </div>
+          </div>
+          {/* Sparkline Wave SVG */}
+          <div className="w-16 h-8 shrink-0">
+            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+              <path
+                d="M2 26 C 16 28, 28 20, 38 24 C 48 26, 52 14, 62 12"
+                stroke="#d97706"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* Card 4: Active Campaigns */}
+        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-[#f5f3ff] text-[#8b5cf6] flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 text-[#8b5cf6]" />
+            </div>
+            <div>
+              <span className="text-xs text-[#6b7280] font-medium block">Active Campaigns</span>
+              <div className="text-2xl font-bold text-[#111827] mt-0.5">8</div>
+              <span className="text-[11px] text-[#8b5cf6] font-medium flex items-center gap-0.5 mt-0.5">
+                <span>↑</span> +2 new this month
+              </span>
+            </div>
+          </div>
+          {/* Sparkline Wave SVG */}
+          <div className="w-16 h-8 shrink-0">
+            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+              <path
+                d="M2 26 C 14 28, 26 22, 38 26 C 48 28, 54 14, 62 12"
+                stroke="#8b5cf6"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 3. MIDDLE SECTION: 3 Columns (Campaigns, Progress, Health)*/}
+      {/* ========================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* ======================================================= */}
-        {/* LEFT COLUMN: Campaigns you're auditing (5 cols)         */}
+        {/* COLUMN 1 (5 cols): Campaigns you're auditing            */}
         {/* ======================================================= */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-[#e7ebe3] p-6 shadow-[0_2px_7px_rgba(26,43,25,0.025),0_10px_30px_rgba(26,43,25,0.035)] space-y-4">
+        <div className="lg:col-span-5 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-bold text-[#202820] tracking-tight">
+            <h2 className="text-sm font-bold text-[#111827]">
               Campaigns you're auditing
             </h2>
 
-            {/* Filter Tabs matching Clean UI */}
-            <div className="flex items-center gap-1 bg-[#f7f8f5] p-1 rounded-xl border border-[#e7ebe3] text-[11px]">
-              {(['All', 'Needs review', 'Completed'] as const).map((tab) => (
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setFilterType('All')}
+                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                  filterType === 'All'
+                    ? 'bg-[#183921] text-white'
+                    : 'text-[#6b7280] hover:text-[#111827]'
+                }`}
+              >
+                All (5)
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('Needs review')}
+                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                  filterType === 'Needs review'
+                    ? 'bg-[#183921] text-white'
+                    : 'text-[#6b7280] hover:text-[#111827]'
+                }`}
+              >
+                Needs review (1)
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterType('Completed')}
+                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                  filterType === 'Completed'
+                    ? 'bg-[#183921] text-white'
+                    : 'text-[#6b7280] hover:text-[#111827]'
+                }`}
+              >
+                Completed (4)
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3.5 pt-1">
+            {filteredCampaigns.map((camp) => {
+              const Icon = camp.icon;
+              return (
+                <div
+                  key={camp.id}
+                  onClick={() => handleOpenReview(camp)}
+                  className="space-y-2 p-2 rounded-xl hover:bg-[#f9fafb] transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-full ${camp.iconBg} ${camp.iconColor} flex items-center justify-center shrink-0`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-xs font-semibold text-[#111827] truncate group-hover:text-[#16a34a] transition-colors">
+                          {camp.title}
+                        </h3>
+                        <div className="text-[11px] text-[#6b7280] flex items-center gap-1.5 mt-0.5">
+                          <span>{camp.timeSpent}</span>
+                          <span>•</span>
+                          <span>{camp.grade}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
+                          camp.status === 'Completed'
+                            ? 'bg-[#ecfdf5] text-[#16a34a]'
+                            : camp.status === 'In review'
+                            ? 'bg-[#fef3c7] text-[#d97706]'
+                            : 'bg-[#fee2e2] text-[#dc2626]'
+                        }`}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                        {camp.status}
+                      </span>
+                      <MoreVertical className="w-4 h-4 text-[#9ca3af] hover:text-[#111827]" />
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full bg-[#f3f4f6] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        camp.progress >= 85
+                          ? 'bg-[#16a34a]'
+                          : camp.progress >= 70
+                          ? 'bg-[#f59e0b]'
+                          : 'bg-[#ef4444]'
+                      }`}
+                      style={{ width: `${camp.progress}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ======================================================= */}
+        {/* COLUMN 2 (4 cols): Brand Compliance Progress            */}
+        {/* ======================================================= */}
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs flex flex-col justify-between space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-[#111827]">
+              Brand Compliance Progress
+            </h2>
+
+            <button
+              type="button"
+              className="flex items-center gap-1 text-xs text-[#4b5563] bg-white border border-[#e5e7eb] px-2.5 py-1 rounded-lg hover:border-[#d1d5db]"
+            >
+              <span>Last 30 days</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#9ca3af]" />
+            </button>
+          </div>
+
+          {/* Sub-Filter Pills */}
+          <div className="flex items-center gap-1 text-xs">
+            {(['Scan Activity', 'Compliance Score', 'Issue Types'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setProgressTab(tab)}
+                className={`px-3 py-1 rounded-full font-medium transition-all ${
+                  progressTab === tab
+                    ? 'bg-[#183921] text-white'
+                    : 'text-[#6b7280] hover:text-[#111827]'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          {/* Vertical Bar Chart with Active Tooltip */}
+          <div className="relative pt-6 pb-2">
+            {/* Active Tooltip over Jun 14 bar */}
+            <div className="absolute left-[48%] -top-1 -translate-x-1/2 bg-[#111827] text-white text-[10px] font-medium px-2 py-1 rounded-md shadow-lg z-10 flex flex-col items-center">
+              <span>28 scans</span>
+              <span className="text-[9px] text-[#9ca3af]">Jun 14</span>
+              {/* Tooltip Down Triangle */}
+              <div className="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-[#111827] -mb-1" />
+            </div>
+
+            {/* Bars */}
+            <div className="flex items-end justify-between gap-1 h-32 px-1">
+              {barChartData.map((bar, idx) => (
+                <div
+                  key={idx}
+                  className={`flex-1 rounded-t-sm transition-all ${
+                    bar.active
+                      ? 'bg-[#183921] shadow-xs'
+                      : 'bg-[#d1fae5] hover:bg-[#a7f3d0]'
+                  }`}
+                  style={{ height: `${bar.height}%` }}
+                  title={`${bar.date}: ${bar.height} scans`}
+                />
+              ))}
+            </div>
+
+            {/* X-Axis Dates */}
+            <div className="flex items-center justify-between text-[10px] text-[#9ca3af] font-medium pt-2 px-1 border-t border-[#f3f4f6]">
+              <span>Jun 1</span>
+              <span>Jun 7</span>
+              <span>Jun 14</span>
+              <span>Jun 21</span>
+              <span>Jun 28</span>
+            </div>
+          </div>
+
+          {/* 4 Bottom Stat Metric Counters */}
+          <div className="grid grid-cols-4 gap-2 pt-3 border-t border-[#f3f4f6] text-center">
+            <div>
+              <div className="text-base font-bold text-[#111827]">124</div>
+              <div className="text-[10px] text-[#6b7280] mt-0.5">Total Scans</div>
+            </div>
+            <div>
+              <div className="text-base font-bold text-[#16a34a]">87</div>
+              <div className="text-[10px] text-[#6b7280] mt-0.5">Approved</div>
+            </div>
+            <div>
+              <div className="text-base font-bold text-[#d97706]">24</div>
+              <div className="text-[10px] text-[#6b7280] mt-0.5">In Review</div>
+            </div>
+            <div>
+              <div className="text-base font-bold text-[#dc2626]">13</div>
+              <div className="text-[10px] text-[#6b7280] mt-0.5">Needs Changes</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ======================================================= */}
+        {/* COLUMN 3 (3 cols): Compliance Health & AI Insights      */}
+        {/* ======================================================= */}
+        <div className="lg:col-span-3 space-y-4">
+          {/* Card A: Compliance Health (Donut Gauge) */}
+          <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-[#111827]">
+                Compliance Health
+              </h2>
+              <ChevronRight className="w-4 h-4 text-[#9ca3af] cursor-pointer hover:text-[#111827]" />
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              {/* Circular Donut Gauge */}
+              <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  {/* Background Track */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    stroke="#f3f4f6"
+                    strokeWidth="10"
+                    fill="none"
+                  />
+                  {/* Compliant Green Arc 86% */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    stroke="#22c55e"
+                    strokeWidth="10"
+                    strokeDasharray={`${0.86 * 238.7} 238.7`}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* Minor Issues Amber Arc 8% */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    stroke="#f59e0b"
+                    strokeWidth="10"
+                    strokeDasharray={`${0.08 * 238.7} 238.7`}
+                    strokeDashoffset={`-${0.86 * 238.7}`}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                  {/* Major Issues Red Arc 6% */}
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="38"
+                    stroke="#ef4444"
+                    strokeWidth="10"
+                    strokeDasharray={`${0.06 * 238.7} 238.7`}
+                    strokeDashoffset={`-${0.94 * 238.7}`}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-xl font-bold text-[#111827] leading-none">86%</span>
+                  <span className="text-[10px] text-[#6b7280] mt-0.5">Healthy</span>
+                </div>
+              </div>
+
+              {/* Legend */}
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-1.5 text-[#374151]">
+                    <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
+                    <span>Compliant</span>
+                  </span>
+                  <span className="font-semibold text-[#111827]">86%</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-1.5 text-[#374151]">
+                    <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
+                    <span>Minor issues</span>
+                  </span>
+                  <span className="font-semibold text-[#111827]">8%</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-1.5 text-[#374151]">
+                    <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
+                    <span>Major issues</span>
+                  </span>
+                  <span className="font-semibold text-[#111827]">6%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Card B: AI Insights */}
+          <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Lightbulb className="w-4 h-4 text-[#f59e0b]" />
+                <h2 className="text-sm font-bold text-[#111827]">
+                  AI Insights
+                </h2>
+              </div>
+              <ChevronRight className="w-4 h-4 text-[#9ca3af] cursor-pointer hover:text-[#111827]" />
+            </div>
+
+            <div className="space-y-2.5 pt-1 text-xs">
+              <div className="flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-full bg-[#ecfdf5] text-[#16a34a] flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#16a34a]" />
+                </div>
+                <p className="text-[#4b5563] leading-snug">
+                  Your compliance score improved by 12% this month.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-full bg-[#f5f3ff] text-[#8b5cf6] flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText className="w-3.5 h-3.5 text-[#8b5cf6]" />
+                </div>
+                <p className="text-[#4b5563] leading-snug">
+                  Tone consistency is strongest in social campaigns (94%).
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2.5">
+                <div className="w-6 h-6 rounded-full bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0 mt-0.5">
+                  <Shield className="w-3.5 h-3.5 text-[#d97706]" />
+                </div>
+                <p className="text-[#4b5563] leading-snug">
+                  Most recurring issues are related to unverified claims.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 4. BOTTOM SECTION: Recent Activity, Top Issues, Actions   */}
+      {/* ========================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* ======================================================= */}
+        {/* COLUMN 1 (5 cols): Recent Activity                      */}
+        {/* ======================================================= */}
+        <div className="lg:col-span-5 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-bold text-[#111827]">
+              Recent Activity
+            </h2>
+
+            {/* Activity Tabs */}
+            <div className="flex items-center gap-1 text-xs">
+              {(['All', 'Scans', 'Approvals', 'Comments'] as const).map((tab) => (
                 <button
                   key={tab}
                   type="button"
-                  onClick={() => setFilterType(tab)}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
-                    filterType === tab
-                      ? 'bg-white text-[#295d36] font-semibold shadow-xs'
-                      : 'text-[#858d83] hover:text-[#202820]'
+                  onClick={() => setActivityTab(tab)}
+                  className={`px-3 py-0.5 rounded-full font-medium transition-all ${
+                    activityTab === tab
+                      ? 'bg-[#183921] text-white'
+                      : 'text-[#6b7280] hover:text-[#111827]'
                   }`}
                 >
                   {tab}
@@ -383,360 +926,189 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
-            {filteredCampaigns.map((camp) => {
-              const Icon = camp.icon;
-              return (
-                <div
-                  key={camp.id}
-                  onClick={() => handleOpenReview(camp)}
-                  className="p-3.5 rounded-2xl bg-[#fbfcfa] border border-[#e7ebe3] hover:border-[#b6cdb1] hover:bg-white hover:shadow-xs transition-all cursor-pointer space-y-2.5 group"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-9 h-9 rounded-xl ${camp.iconBg} ${camp.iconColor} flex items-center justify-center shrink-0 shadow-2xs`}>
-                        <Icon className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="text-xs font-semibold text-[#202820] truncate group-hover:text-[#295d36] transition-colors">
-                          {camp.title}
-                        </h3>
-                        <div className="text-[10px] text-[#858d83] flex items-center gap-2 mt-0.5">
-                          <span>{camp.timeSpent}</span>
-                          <span>·</span>
-                          <span>{camp.grade}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status Badge with Clean UI colors */}
-                    <span
-                      className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 flex items-center gap-1 ${
-                        camp.status === 'Completed'
-                          ? 'bg-[#eff6ed] text-[#2f633a] border border-[#d2ecd0]'
-                          : camp.status === 'In review'
-                          ? 'bg-[#fff6e5] text-[#a36d24] border border-[#fed7aa]'
-                          : camp.status === 'Changes requested'
-                          ? 'bg-[#fff0ed] text-[#b8473c] border border-[#fcd8d4]'
-                          : 'bg-[#f0f2ed] text-[#50594f] border border-[#e2e6de]'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {camp.status}
-                    </span>
-                  </div>
-
-                  {/* Progress Bar with Clean UI palette */}
-                  <div className="w-full bg-[#edf0ea] h-1.5 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        camp.progress === 100
-                          ? 'bg-[#295d36]'
-                          : camp.progress > 50
-                          ? 'bg-[#3f7449]'
-                          : 'bg-[#a36d24]'
-                      }`}
-                      style={{ width: `${camp.progress}%` }}
-                    />
-                  </div>
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-6 h-6 rounded-full bg-[#ecfdf5] text-[#16a34a] flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
                 </div>
-              );
-            })}
-
-            {filteredCampaigns.length === 0 && (
-              <div className="text-center py-8 text-[#858d83] text-xs">
-                No campaigns match this filter.
+                <span className="text-[#111827] font-medium truncate">
+                  Campaign "Summer Campaign - Social" completed
+                </span>
               </div>
-            )}
+              <span className="text-[11px] text-[#9ca3af] shrink-0">2 mins ago</span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-6 h-6 rounded-full bg-[#fef3c7] text-[#d97706] flex items-center justify-center shrink-0">
+                  <Clock className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[#111827] font-medium truncate">
+                  "Product Brochure v2" sent for review
+                </span>
+              </div>
+              <span className="text-[11px] text-[#9ca3af] shrink-0">15 mins ago</span>
+            </div>
+
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-6 h-6 rounded-full bg-[#f3f4f6] text-[#6b7280] flex items-center justify-center shrink-0">
+                  <FileText className="w-3.5 h-3.5" />
+                </div>
+                <span className="text-[#111827] font-medium truncate">
+                  New draft created: "Q3 Email Copy"
+                </span>
+              </div>
+              <span className="text-[11px] text-[#9ca3af] shrink-0">1 hour ago</span>
+            </div>
           </div>
         </div>
 
         {/* ======================================================= */}
-        {/* RIGHT COLUMN: Brand Compliance Progress & Charts (7 cols)*/}
+        {/* COLUMN 2 (4 cols): Top Issue Types                      */}
         {/* ======================================================= */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="lg:col-span-4 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#202820] tracking-tight">
-              Brand Compliance Progress
+            <h2 className="text-sm font-bold text-[#111827]">
+              Top Issue Types
             </h2>
-
-            {/* Time Filter Dropdown from Clean UI */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setPeriodOpen(!periodOpen)}
-                className="flex items-center gap-1 text-xs text-[#50594f] bg-white px-2.5 py-1 rounded-lg border border-[#e7ebe3] hover:border-[#dce2d7] hover:text-[#202820] cursor-pointer transition-colors shadow-2xs"
-              >
-                <span>{period}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#858d83]" />
-              </button>
-
-              {periodOpen && (
-                <div className="absolute right-0 top-[calc(100%+4px)] z-30 w-36 p-1 rounded-xl border border-[#e7ebe3] bg-white shadow-xl space-y-0.5">
-                  {(['Last 7 days', 'Last month', 'Last quarter'] as const).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => {
-                        setPeriod(p);
-                        setPeriodOpen(false);
-                        triggerToast(`Analytical period updated to ${p}.`);
-                      }}
-                      className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-[#f7f8f5] text-[#202820] flex items-center justify-between"
-                    >
-                      <span>{p}</span>
-                      {period === p && <Check className="w-3 h-3 text-[#295d36]" />}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Grid of Analytical Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-            {/* Card 1: Track your scan activity / Bar Chart Card (6 cols) */}
-            <div className="sm:col-span-6 bg-white rounded-3xl border border-[#e7ebe3] p-5 shadow-[0_2px_7px_rgba(26,43,25,0.025),0_10px_30px_rgba(26,43,25,0.035)] flex flex-col justify-between min-h-[220px]">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-[#7c8677] font-medium">Track your scan hours</span>
-                <span className="w-5 h-5 rounded-full bg-[#f0f6ed] text-[10px] font-mono text-[#295d36] font-bold flex items-center justify-center">
-                  1
-                </span>
-              </div>
-
-              {/* Vertical Bar Chart Simulation with Clean Green Palettes */}
-              <div className="flex items-end justify-between gap-2 h-24 pt-4 px-2">
-                <div className="flex-1 bg-[#e7eee4] h-[35%] rounded-t-sm hover:bg-[#d5e2d1] transition-colors" title="Mon: 14 scans" />
-                <div className="flex-1 bg-[#e7eee4] h-[55%] rounded-t-sm hover:bg-[#d5e2d1] transition-colors" title="Tue: 22 scans" />
-                <div className="flex-1 bg-[#295d36] h-[85%] rounded-t-sm shadow-xs" title="Wed: 34 scans (Peak)" />
-                <div className="flex-1 bg-[#e7eee4] h-[45%] rounded-t-sm hover:bg-[#d5e2d1] transition-colors" title="Thu: 18 scans" />
-                <div className="flex-1 bg-[#e7eee4] h-[65%] rounded-t-sm hover:bg-[#d5e2d1] transition-colors" title="Fri: 26 scans" />
-                <div className="flex-1 bg-[#e7eee4] h-[40%] rounded-t-sm hover:bg-[#d5e2d1] transition-colors" title="Sat: 16 scans" />
-              </div>
-
-              <div className="flex items-baseline justify-between pt-2 border-t border-[#f0f2ed]">
-                <span className="text-[10px] text-[#858d83] uppercase tracking-wider font-mono">Total Scans</span>
-                <span className="text-2xl font-bold font-mono text-[#202820] tabular-nums">
-                  {period === 'Last 7 days' ? '38' : period === 'Last month' ? '124' : '382'}
-                </span>
-              </div>
-            </div>
-
-            {/* Stacked Right Cards (6 cols) */}
-            <div className="sm:col-span-6 space-y-4 flex flex-col justify-between">
-              {/* Card 2: Drafts Completed / Approved Card (Signature Deep Green #295d36) */}
-              <div className="bg-[#295d36] text-white rounded-3xl p-5 shadow-lg shadow-[#295d36]/20 flex flex-col justify-between min-h-[105px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-white/90">Drafts approved</span>
-                  <span className="w-5 h-5 rounded-full bg-white/20 text-[10px] font-mono text-white flex items-center justify-center font-bold">
-                    2
-                  </span>
-                </div>
-                <div className="flex items-baseline justify-between mt-2">
-                  <span className="text-xs text-[#d7ef8b] font-mono font-medium">70% Pass Rate</span>
-                  <span className="text-3xl font-bold font-mono text-white tabular-nums">36</span>
-                </div>
-              </div>
-
-              {/* Card 3: Performance Spline Wave Chart Card */}
-              <div className="bg-white rounded-3xl border border-[#e7ebe3] p-5 shadow-[0_2px_7px_rgba(26,43,25,0.025),0_10px_30px_rgba(26,43,25,0.035)] flex flex-col justify-between min-h-[105px]">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-[#7c8677] font-medium">Compliance Health</span>
-                  <span className="w-5 h-5 rounded-full bg-[#f0f6ed] text-[10px] font-mono text-[#295d36] font-bold flex items-center justify-center">
-                    3
-                  </span>
-                </div>
-
-                {/* Spline Wave Line Simulation with Emerald Stroke & Gradient Fill */}
-                <div className="h-10 w-full mt-2 relative">
-                  <svg className="w-full h-full" viewBox="0 0 160 40" fill="none">
-                    <defs>
-                      <linearGradient id="splineGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#295d36" stopOpacity="0.2" />
-                        <stop offset="100%" stopColor="#295d36" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M0,32 Q25,35 45,20 T90,26 T130,8 T160,25 L160,40 L0,40 Z"
-                      fill="url(#splineGradient)"
-                    />
-                    <path
-                      d="M0,32 Q25,35 45,20 T90,26 T130,8 T160,25"
-                      stroke="#295d36"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="130" cy="8" r="3.5" fill="#295d36" stroke="#ffffff" strokeWidth="1.5" />
-                  </svg>
-                  <div className="absolute right-6 -top-2 bg-[#edf5e8] text-[#2f633a] border border-[#d2ecd0] text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-full shadow-2xs">
-                    86%
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Pending Review Queue Bottom Pill */}
-          <div
-            onClick={() => navigate('/review')}
-            className="p-4 rounded-2xl bg-white border border-[#e7ebe3] hover:border-[#295d36] flex items-center justify-between text-xs cursor-pointer shadow-[0_2px_7px_rgba(26,43,25,0.025)] transition-all group"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className="w-5 h-5 rounded-full bg-[#eff6ed] text-[#295d36] text-[10px] font-mono font-bold flex items-center justify-center">
-                4
-              </span>
-              <span className="font-semibold text-[#202820] group-hover:text-[#295d36] transition-colors">
-                Pending Review Queue (3 items)
-              </span>
-            </div>
-            <div className="flex items-center gap-1 text-[#858d83] group-hover:text-[#295d36] font-medium transition-colors">
-              <span>View queue</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ========================================================= */}
-      {/* GOVERNANCE ANALYTICS & RECURRING POLICY DIAGNOSTICS       */}
-      {/* ========================================================= */}
-      <div className="bg-white rounded-3xl border border-[#e7ebe3] p-5 sm:p-7 shadow-[0_2px_7px_rgba(26,43,25,0.025),0_10px_30px_rgba(26,43,25,0.035)] space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e7ebe3]">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm sm:text-base font-bold text-[#202820] tracking-tight">
-                Governance Analytics & Policy Improvement Diagnostics
-              </h2>
-              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#eff6ed] text-[#295d36] border border-[#d2ecd0]">
-                Live Telemetry
-              </span>
-            </div>
-            <p className="text-xs text-[#858d83] mt-0.5">
-              Empirical compliance clusters identifying recurring violations and evidence-based guideline recommendations.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => navigate('/audit')}
-              className="text-xs font-semibold text-[#295d36] bg-[#f0f6ed] hover:bg-[#e4edd0] border border-[#d2ecd0] px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-2xs"
+              className="flex items-center gap-1 text-xs text-[#4b5563] bg-white border border-[#e5e7eb] px-2.5 py-1 rounded-lg hover:border-[#d1d5db]"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#295d36]" />
-              <span>Inspect Audit Hash Chain</span>
+              <span>Last 30 days</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#9ca3af]" />
             </button>
           </div>
+
+          <div className="space-y-2.5 pt-1 text-xs">
+            {/* 1. Unverified claims */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[#374151] w-36 truncate">Unverified claims</span>
+              <div className="flex-1 bg-[#f3f4f6] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#ef4444] h-full rounded-full" style={{ width: '42%' }} />
+              </div>
+              <div className="text-right w-12 text-[#6b7280] font-mono text-[11px]">
+                <strong className="text-[#111827]">32</strong> 42%
+              </div>
+            </div>
+
+            {/* 2. Misleading language */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[#374151] w-36 truncate">Misleading language</span>
+              <div className="flex-1 bg-[#f3f4f6] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#ea580c] h-full rounded-full" style={{ width: '24%' }} />
+              </div>
+              <div className="text-right w-12 text-[#6b7280] font-mono text-[11px]">
+                <strong className="text-[#111827]">18</strong> 24%
+              </div>
+            </div>
+
+            {/* 3. Missing sources */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[#374151] w-36 truncate">Missing sources</span>
+              <div className="flex-1 bg-[#f3f4f6] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#f59e0b] h-full rounded-full" style={{ width: '18%' }} />
+              </div>
+              <div className="text-right w-12 text-[#6b7280] font-mono text-[11px]">
+                <strong className="text-[#111827]">14</strong> 18%
+              </div>
+            </div>
+
+            {/* 4. Tone inconsistency */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[#374151] w-36 truncate">Tone inconsistency</span>
+              <div className="flex-1 bg-[#f3f4f6] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#10b981] h-full rounded-full" style={{ width: '10%' }} />
+              </div>
+              <div className="text-right w-12 text-[#6b7280] font-mono text-[11px]">
+                <strong className="text-[#111827]">8</strong> 10%
+              </div>
+            </div>
+
+            {/* 5. Other */}
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[#374151] w-36 truncate">Other</span>
+              <div className="flex-1 bg-[#f3f4f6] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#9ca3af] h-full rounded-full" style={{ width: '6%' }} />
+              </div>
+              <div className="text-right w-12 text-[#6b7280] font-mono text-[11px]">
+                <strong className="text-[#111827]">4</strong> 6%
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* 4 Responsive Governance Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-[#fbfcfa] border border-[#e7ebe3] space-y-1">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-[#858d83] font-semibold">
-              Finding Resolution Rate
-            </span>
-            <div className="text-2xl font-bold font-mono text-[#295d36]">
-              {resolutionRate}%
+        {/* ======================================================= */}
+        {/* COLUMN 3 (3 cols): Quick Actions & Mascot Speech Bubble */}
+        {/* ======================================================= */}
+        <div className="lg:col-span-3 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs flex flex-col justify-between relative min-h-[190px]">
+          <div className="space-y-3">
+            <h2 className="text-sm font-bold text-[#111827] flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-[#16a34a]" />
+              <span>Quick Actions</span>
+            </h2>
+
+            {/* 2x2 Action Buttons Grid */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => navigate('/drafts/new')}
+                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                <span className="truncate">Scan new content</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/drafts/new')}
+                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                <span className="truncate">Create campaign</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/governance')}
+                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+              >
+                <BarChart3 className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                <span className="truncate">View reports</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/settings')}
+                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+              >
+                <Users className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                <span className="truncate">Manage team</span>
+              </button>
             </div>
-            <p className="text-[11px] text-[#50594f]">
-              {resolvedFindings} of {totalFindings} findings resolved or dismissed
-            </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#fbfcfa] border border-[#e7ebe3] space-y-1">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-[#858d83] font-semibold">
-              Submitted in Review Queue
-            </span>
-            <div className="text-2xl font-bold font-mono text-[#a36d24]">
-              {analytics.draftsByStatus.submitted || 3}
+          {/* Bottom-Right Floating Speech Bubble with Chibi Mascot Avatar */}
+          <div className="flex items-center justify-end gap-2 pt-3">
+            <div className="bg-white border border-[#e5e7eb] shadow-md px-3 py-1.5 rounded-2xl text-[11px] font-medium text-[#1f2937] flex items-center gap-1.5 animate-bounce">
+              <span>Let's make it on-brand!</span>
+              <span>🌿</span>
             </div>
-            <p className="text-[11px] text-[#50594f]">
-              Multi-role independent reviewer sign-off required
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#fbfcfa] border border-[#e7ebe3] space-y-1">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-[#858d83] font-semibold">
-              Approved Publications
-            </span>
-            <div className="text-2xl font-bold font-mono text-[#202820]">
-              {analytics.draftsByStatus.approved || 14}
+            <div className="w-8 h-8 rounded-full bg-[#183921] p-0.5 overflow-hidden flex items-center justify-center shrink-0 shadow-md">
+              <img
+                src="/lax-icon.png"
+                alt="LAX Mascot"
+                className="w-7 h-7 object-contain"
+              />
             </div>
-            <p className="text-[11px] text-[#50594f]">
-              Zero false greens: 100% verified complete scans
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#fbfcfa] border border-[#e7ebe3] space-y-1">
-            <span className="text-[10px] uppercase font-mono tracking-wider text-[#858d83] font-semibold">
-              Cryptographic Integrity
-            </span>
-            <div className="text-2xl font-bold font-mono text-[#295d36] flex items-center gap-1.5">
-              <span>Verified</span>
-              <Check className="w-4 h-4 text-[#295d36]" />
-            </div>
-            <p className="text-[11px] text-[#50594f]">
-              Sequential SHA-256 HMAC tamper detection active
-            </p>
-          </div>
-        </div>
-
-        {/* Recurring Violations Table & Policy Health Diagnostic Recommendations */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[#202820] flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4 text-[#295d36]" />
-              <span>Top Recurring Violations (Policy Clusters)</span>
-            </span>
-            <span className="text-[11px] text-[#858d83] font-mono">
-              Threshold: 2+ distinct drafts
-            </span>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-[#e7ebe3]">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-[#fbfcfa] border-b border-[#e7ebe3] text-[#858d83] font-mono text-[10px] uppercase">
-                  <th className="py-3 px-4">Policy / Rule Key</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4 text-center">Total Findings</th>
-                  <th className="py-3 px-4 text-center">Affected Drafts</th>
-                  <th className="py-3 px-4">Evidence-Based Recommendation</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e7ebe3] text-[#202820]">
-                {analytics.recurring.map((r, i) => (
-                  <tr key={i} className="hover:bg-[#f7f8f5] transition-colors">
-                    <td className="py-3 px-4 font-mono font-bold text-[#295d36]">
-                      {r.ruleKey || 'RULE_DEFAULT'}
-                    </td>
-                    <td className="py-3 px-4 font-medium capitalize">
-                      {r.category.replace('_', ' ')}
-                    </td>
-                    <td className="py-3 px-4 text-center font-mono font-semibold">
-                      {r.findings}
-                    </td>
-                    <td className="py-3 px-4 text-center font-mono">
-                      {r.draftCount}
-                    </td>
-                    <td className="py-3 px-4 text-[11px] text-[#50594f]">
-                      {r.category === 'claim_boundary' ? (
-                        <span>Expand SER substantiation for clinical product benefits or clarify marketing claim boundaries.</span>
-                      ) : r.category === 'terminology' ? (
-                        <span>High occurrence of prohibited descriptors. Provide copywriters with approved alternative terminology.</span>
-                      ) : (
-                        <span>Tone guidelines need reinforcement: eliminate hyperbole, miracle descriptors, or colloquial slang.</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* HUMAN GOVERNANCE & REVIEW DRAWER (UX from clean-ui)       */}
+      {/* HUMAN GOVERNANCE & REVIEW DRAWER MODAL                    */}
       {/* ========================================================= */}
       <AnimatePresence>
         {selectedCampaign && (
@@ -756,20 +1128,20 @@ export const DashboardPage: React.FC = () => {
               <div className="p-6 border-b border-[#e7ebe3] flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 text-[10px] font-mono text-[#858d83] uppercase tracking-wider">
-                    <span className="w-3 h-0.5 rounded-full bg-[#3f7449]" />
+                    <span className="w-3 h-0.5 rounded-full bg-[#16a34a]" />
                     <span>CONTENT DETAIL · HUMAN GOVERNANCE</span>
                   </div>
-                  <h3 className="text-lg font-bold text-[#202820] mt-1">
+                  <h3 className="text-lg font-bold text-[#111827] mt-1">
                     {selectedCampaign.title}
                   </h3>
-                  <p className="text-xs text-[#858d83] mt-0.5">
+                  <p className="text-xs text-[#6b7280] mt-0.5">
                     {selectedCampaign.id} · {selectedCampaign.category} · {selectedCampaign.timeSpent}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedCampaign(null)}
-                  className="w-8 h-8 rounded-full border border-[#e7ebe3] hover:bg-[#f7f8f5] text-[#858d83] hover:text-[#202820] flex items-center justify-center transition-colors"
+                  className="w-8 h-8 rounded-full border border-[#e7ebe3] hover:bg-[#f7f8f5] text-[#858d83] hover:text-[#111827] flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -778,25 +1150,23 @@ export const DashboardPage: React.FC = () => {
               {/* Modal Body */}
               <div className="p-6 overflow-y-auto space-y-5 text-xs">
                 {/* Score & Findings Summary */}
-                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#fbfcfa] border border-[#e7ebe3]">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#f9fafb] border border-[#e7ebe3]">
                   <div>
-                    <span className="text-[10px] text-[#858d83] block">Brand Compliance Score</span>
-                    <strong className="text-xl font-mono font-bold text-[#202820]">
+                    <span className="text-[10px] text-[#6b7280] block">Brand Compliance Score</span>
+                    <strong className="text-xl font-mono font-bold text-[#111827]">
                       {selectedCampaign.score ? `${selectedCampaign.score}%` : 'Pending scan'}
                     </strong>
                   </div>
                   <span
                     className={`text-[11px] font-semibold px-3 py-1 rounded-full ${
                       selectedCampaign.status === 'Completed'
-                        ? 'bg-[#eff6ed] text-[#2f633a] border border-[#d2ecd0]'
-                        : selectedCampaign.status === 'In review'
-                        ? 'bg-[#fff6e5] text-[#a36d24] border border-[#fed7aa]'
-                        : 'bg-[#f0f2ed] text-[#50594f] border border-[#e2e6de]'
+                        ? 'bg-[#ecfdf5] text-[#16a34a]'
+                        : 'bg-[#fef3c7] text-[#d97706]'
                     }`}
                   >
                     {selectedCampaign.status}
                   </span>
-                  <div className="flex items-center gap-1.5 text-xs text-[#b8473c] font-semibold bg-[#fff0ed] px-2.5 py-1 rounded-lg border border-[#fcd8d4]">
+                  <div className="flex items-center gap-1.5 text-xs text-[#dc2626] font-semibold bg-[#fee2e2] px-2.5 py-1 rounded-lg">
                     <ShieldAlert className="w-3.5 h-3.5" />
                     <span>{selectedCampaign.issues} findings detected</span>
                   </div>
@@ -805,8 +1175,8 @@ export const DashboardPage: React.FC = () => {
                 {/* Draft Content Field */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <strong className="text-[#202820] font-semibold">Campaign Copy</strong>
-                    <span className="text-[#858d83] text-[11px]">
+                    <strong className="text-[#111827] font-semibold">Campaign Copy</strong>
+                    <span className="text-[#6b7280] text-[11px]">
                       {role === 'creator' ? 'Editable draft' : 'Read-only preview'}
                     </span>
                   </div>
@@ -815,15 +1185,15 @@ export const DashboardPage: React.FC = () => {
                     value={editorCopy}
                     onChange={(e) => setEditorCopy(e.target.value)}
                     readOnly={role !== 'creator'}
-                    className="w-full p-3 rounded-xl border border-[#e7ebe3] bg-[#fbfcfa] text-[#202820] text-xs focus:outline-none focus:border-[#3f7449] focus:ring-2 focus:ring-[#3f7449]/10 font-sans leading-relaxed"
+                    className="w-full p-3 rounded-xl border border-[#e7ebe3] bg-[#f9fafb] text-[#111827] text-xs focus:outline-none focus:border-[#16a34a] focus:ring-2 focus:ring-[#16a34a]/10 font-sans leading-relaxed"
                   />
                 </div>
 
                 {/* AI Analysis Findings */}
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <strong className="text-[#202820] font-semibold">AI Analysis Findings</strong>
-                    <span className="text-[10px] font-mono text-[#858d83]">Active Policy: v2.1</span>
+                    <strong className="text-[#111827] font-semibold">AI Analysis Findings</strong>
+                    <span className="text-[10px] font-mono text-[#6b7280]">Active Policy: v2.1</span>
                   </div>
 
                   {(sampleFindings[selectedCampaign.id] || []).length > 0 ? (
@@ -837,42 +1207,42 @@ export const DashboardPage: React.FC = () => {
                             <span
                               className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-md ${
                                 f.severity === 'High'
-                                  ? 'bg-[#fff0ed] text-[#b8473c] border border-[#fcd8d4]'
-                                  : 'bg-[#fff6e5] text-[#a36d24] border border-[#fed7aa]'
+                                  ? 'bg-[#fee2e2] text-[#dc2626]'
+                                  : 'bg-[#fef3c7] text-[#d97706]'
                               }`}
                             >
                               {f.severity}
                             </span>
-                            <strong className="text-xs text-[#202820]">{f.title}</strong>
+                            <strong className="text-xs text-[#111827]">{f.title}</strong>
                           </div>
                         </div>
 
-                        <p className="text-[#50594f] text-xs leading-relaxed">{f.detail}</p>
+                        <p className="text-[#4b5563] text-xs leading-relaxed">{f.detail}</p>
 
-                        <div className="flex items-center justify-between text-[11px] text-[#858d83] pt-1 border-t border-[#f0f2ed]">
+                        <div className="flex items-center justify-between text-[11px] text-[#6b7280] pt-1 border-t border-[#f3f4f6]">
                           <span className="flex items-center gap-1">
-                            <BookOpen className="w-3 h-3 text-[#3f7449]" />
+                            <BookOpen className="w-3 h-3 text-[#16a34a]" />
                             <span>{f.source}</span>
                           </span>
                         </div>
 
-                        <div className="p-2.5 rounded-xl bg-[#f0f6ed] border border-[#d2ecd0] text-xs text-[#295d36] flex items-start gap-2">
-                          <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#3f7449]" />
+                        <div className="p-2.5 rounded-xl bg-[#ecfdf5] border border-[#a7f3d0] text-xs text-[#16a34a] flex items-start gap-2">
+                          <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#16a34a]" />
                           <div>
-                            <strong className="block text-[11px] text-[#295d36]">Suggested correction:</strong>
-                            <span className="text-[#50594f]">{f.fix}</span>
+                            <strong className="block text-[11px] text-[#15803d]">Suggested correction:</strong>
+                            <span className="text-[#374151]">{f.fix}</span>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-4 rounded-xl bg-[#eff6ed] border border-[#d2ecd0] text-center text-xs text-[#295d36] font-medium">
+                    <div className="p-4 rounded-xl bg-[#ecfdf5] border border-[#a7f3d0] text-center text-xs text-[#16a34a] font-medium">
                       No policy violations detected. Content is verified on-brand!
                     </div>
                   )}
 
-                  <div className="p-3 rounded-xl bg-[#f7f8f5] border border-[#e7ebe3] flex items-center gap-2 text-[11px] text-[#858d83]">
-                    <LockKeyhole className="w-3.5 h-3.5 text-[#3f7449] shrink-0" />
+                  <div className="p-3 rounded-xl bg-[#f9fafb] border border-[#e7ebe3] flex items-center gap-2 text-[11px] text-[#6b7280]">
+                    <LockKeyhole className="w-3.5 h-3.5 text-[#16a34a] shrink-0" />
                     <span>
                       AI suggestions are advisory. Human governance decision is recorded in the immutable audit log.
                     </span>
@@ -881,11 +1251,11 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               {/* Modal Actions */}
-              <div className="p-4 px-6 border-t border-[#e7ebe3] bg-[#fbfcfa] flex items-center justify-between gap-3">
+              <div className="p-4 px-6 border-t border-[#e7ebe3] bg-[#f9fafb] flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => setSelectedCampaign(null)}
-                  className="px-4 py-2 rounded-xl border border-[#e7ebe3] hover:bg-white text-xs font-semibold text-[#50594f] transition-colors"
+                  className="px-4 py-2 rounded-xl border border-[#e7ebe3] hover:bg-white text-xs font-semibold text-[#4b5563] transition-colors cursor-pointer"
                 >
                   Close
                 </button>
@@ -894,14 +1264,14 @@ export const DashboardPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleRequestChanges}
-                    className="px-4 py-2 rounded-xl border border-[#fed7aa] bg-[#fff6e5] hover:bg-[#ffedd5] text-[#a36d24] text-xs font-semibold transition-colors"
+                    className="px-4 py-2 rounded-xl border border-[#fed7aa] bg-[#fffbeb] hover:bg-[#fef3c7] text-[#d97706] text-xs font-semibold transition-colors cursor-pointer"
                   >
                     Request changes
                   </button>
                   <button
                     type="button"
                     onClick={handleApprove}
-                    className="px-4 py-2 rounded-xl bg-[#295d36] hover:bg-[#1f4729] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors"
+                    className="px-4 py-2 rounded-xl bg-[#1e4a2b] hover:bg-[#14341e] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" />
                     <span>Approve & publish</span>

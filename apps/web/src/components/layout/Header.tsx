@@ -107,19 +107,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
       </div>
 
       {/* Center: Global Search & Command Menu Trigger */}
-      <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md mx-2 sm:mx-4">
+      <div className="flex-1 max-w-md sm:max-w-lg md:max-w-xl mx-2 sm:mx-4">
         <button
           type="button"
           onClick={onOpenCommandMenu}
-          className="w-full h-9 px-3 text-xs bg-[#fbfcfa] border border-[#e7ebe3] hover:border-[#dce2d7] rounded-xl text-[#858d83] hover:text-[#202820] flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
+          className="w-full h-9 px-3.5 text-xs bg-white border border-[#e5e7eb] hover:border-[#d1d5db] rounded-full text-[#6b7280] hover:text-[#111827] flex items-center justify-between transition-all cursor-pointer shadow-2xs group"
           aria-label="Search pages, drafts, and policies"
         >
-          <div className="flex items-center gap-2 truncate">
-            <Search className="w-3.5 h-3.5 text-[#858d83] group-hover:text-[#295d36] transition-colors shrink-0" />
-            <span className="truncate">Search drafts, policies, facts…</span>
+          <div className="flex items-center gap-2.5 truncate">
+            <Search className="w-3.5 h-3.5 text-[#9ca3af] group-hover:text-[#16a34a] transition-colors shrink-0" />
+            <span className="truncate">Search drafts, policies, campaigns, or ask AI...</span>
           </div>
-          <span className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#f1f4ee] border border-[#e7ebe3] text-[10px] font-mono text-[#858d83] shrink-0">
-            <Command className="w-2.5 h-2.5" /> K
+          <span className="hidden sm:flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#f3f4f6] border border-[#e5e7eb] text-[10px] font-mono text-[#6b7280] shrink-0">
+            ⌘ K
           </span>
         </button>
       </div>
@@ -130,11 +130,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
         <button
           type="button"
           onClick={() => navigate('/drafts/new')}
-          className="h-9 px-3 sm:px-3.5 rounded-xl bg-[#295d36] hover:bg-[#1f4729] text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
+          className="h-9 px-4 rounded-full bg-[#1e4a2b] hover:bg-[#14341e] text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer shrink-0"
           title="Create New Content Draft"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">New draft</span>
+          <span>New draft</span>
         </button>
 
         {/* Role Switcher */}
@@ -142,15 +142,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
           <button
             type="button"
             onClick={() => setRoleOpen(!roleOpen)}
-            className="h-9 px-2.5 sm:px-3 rounded-xl border border-[#e7ebe3] bg-[#fbfcfa] hover:bg-white flex items-center gap-1.5 sm:gap-2 text-xs text-[#202820] transition-colors cursor-pointer"
+            className="h-9 px-3 rounded-full border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] flex items-center gap-1.5 sm:gap-2 text-xs text-[#374151] transition-colors cursor-pointer shadow-2xs"
             aria-expanded={roleOpen}
             aria-haspopup="true"
             title="Switch Persona"
           >
-            <span className="w-2 h-2 rounded-full bg-[#3f7449] shrink-0" />
-            <span className="hidden lg:inline text-[#858d83]">Role:</span>
-            <span className="font-semibold capitalize text-xs">{role}</span>
-            <ChevronDown className="w-3 h-3 text-[#858d83] shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-[#10b981] shrink-0" />
+            <span className="text-[#6b7280]">Role:</span>
+            <span className="font-semibold capitalize text-xs text-[#111827]">{role}</span>
+            <ChevronDown className="w-3 h-3 text-[#9ca3af] shrink-0" />
           </button>
 
           {roleOpen && (
@@ -168,10 +168,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
                   }}
                   className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs hover:bg-[#f7f8f5] capitalize transition-colors text-left cursor-pointer"
                 >
-                  <span className={role === r ? 'font-bold text-[#295d36]' : 'text-[#202820]'}>
+                  <span className={role === r ? 'font-bold text-[#1e4a2b]' : 'text-[#202820]'}>
                     {r}
                   </span>
-                  {role === r && <Check className="w-3.5 h-3.5 text-[#295d36]" />}
+                  {role === r && <Check className="w-3.5 h-3.5 text-[#1e4a2b]" />}
                 </button>
               ))}
               <div className="px-2.5 py-1 text-[10px] text-[#858d83] border-t border-[#e7ebe3]">
@@ -186,32 +186,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
           <button
             type="button"
             onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className="w-9 h-9 rounded-xl border border-[#e7ebe3] bg-[#fbfcfa] hover:bg-white flex items-center justify-center text-[#50594f] hover:text-[#202820] transition-colors relative cursor-pointer"
+            className="w-9 h-9 rounded-full border border-[#e5e7eb] bg-white hover:bg-[#f9fafb] flex items-center justify-center text-[#4b5563] hover:text-[#111827] transition-colors relative cursor-pointer shadow-2xs"
             title="Notifications"
             aria-expanded={notificationsOpen}
             aria-label="View notifications"
           >
-            <Bell className="w-4 h-4" />
-            {unreadCount > 0 && (
-              <span className="w-2.5 h-2.5 rounded-full bg-[#a36d24] absolute top-1.5 right-1.5 border-2 border-white flex items-center justify-center" />
-            )}
+            <Bell className="w-4 h-4 text-[#4b5563]" />
+            <span className="w-3.5 h-3.5 rounded-full bg-[#ef4444] text-white text-[9px] font-bold absolute -top-0.5 -right-0.5 flex items-center justify-center border-2 border-white">
+              1
+            </span>
           </button>
 
           {notificationsOpen && (
             <div className="absolute right-0 top-[calc(100%+6px)] z-50 w-72 sm:w-80 p-2.5 rounded-xl border border-[#e7ebe3] bg-white shadow-xl space-y-2 animate-in fade-in slide-in-from-top-1">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[10px] font-mono uppercase text-[#98a094] tracking-wider">
-                  Notifications ({unreadCount} unread)
+                  Notifications (1 unread)
                 </span>
-                {unreadCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleMarkAllRead}
-                    className="text-[11px] text-[#295d36] hover:underline font-medium cursor-pointer"
-                  >
-                    Mark all read
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  className="text-[11px] text-[#1e4a2b] hover:underline font-medium cursor-pointer"
+                >
+                  Mark all read
+                </button>
               </div>
 
               <div className="space-y-1.5 max-h-64 overflow-y-auto">
@@ -234,6 +232,15 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileDrawer, onOpenComman
               </div>
             </div>
           )}
+        </div>
+
+        {/* User Avatar Circle: Lavender/Purple with Initial A */}
+        <div
+          onClick={() => navigate('/settings')}
+          className="w-9 h-9 rounded-full bg-[#c7d2fe] text-[#4338ca] font-bold text-xs flex items-center justify-center cursor-pointer shadow-2xs hover:ring-2 hover:ring-[#818cf8]/50 transition-all shrink-0"
+          title="User Account"
+        >
+          A
         </div>
       </div>
     </header>

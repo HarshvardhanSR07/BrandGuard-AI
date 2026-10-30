@@ -91,7 +91,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
         <div>
           <div className="flex items-center justify-between pb-4 border-b border-[#e7ebe3]">
             <div className="flex items-center gap-2.5">
-              <BrandGuardLogo size="sm" />
+              <BrandGuardLogo size="md" />
               <div className="flex flex-col">
                 <span className="font-playfair font-bold text-sm tracking-tight text-[#202820]">
                   BrandGuard <span className="text-[#295d36]">AI</span>

@@ -92,10 +92,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
           <div className="flex flex-col items-center gap-2 mb-4">
             <div
               onClick={() => navigate('/dashboard')}
-              className="cursor-pointer group p-0.5 rounded-xl hover:bg-[#f1f4ee] transition-all flex items-center justify-center"
+              className="cursor-pointer group p-1 rounded-xl hover:bg-[#f1f4ee] transition-all flex items-center justify-center"
               title="BrandGuard AI Home"
             >
-              <BrandGuardLogo size="sm" />
+              <BrandGuardLogo size="md" />
             </div>
 
             <button

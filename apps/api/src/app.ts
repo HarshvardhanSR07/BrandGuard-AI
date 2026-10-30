@@ -20,6 +20,7 @@ import {
   verifyChain,
 } from '@brandguard/data-security';
 import { brandGuardAIService } from './ai/brandGuardAIService';
+import { cogneeMemoryService } from './ai/cogneeMemoryService';
 
 export const createApp = (): Application => {
   const app = express();
@@ -38,6 +39,7 @@ export const createApp = (): Application => {
       process.env.AI_INFERENCE_URL ||
       `https://api-inference.huggingface.co/models/${modelId}`;
     const laxKey = process.env.LAX_MEMORY_API_KEY || '3ddaf04065334504cd15d0764e14e3b3c8fa85b79548a7699d32d1e8cc021725';
+    const laxStats = cogneeMemoryService.getMemoryStats();
     res.json({
       status: 'ok',
       apiKeyConfigured: !!token,
@@ -50,7 +52,8 @@ export const createApp = (): Application => {
         keyPrefix: laxKey ? `${laxKey.substring(0, 4)}...${laxKey.substring(laxKey.length - 4)}` : null,
         fullKey: laxKey,
         status: 'Active & Synchronized',
-        version: 'v1.4-persistent',
+        version: 'v2.4-cognee',
+        cognee: laxStats,
       },
     });
   });
@@ -258,44 +261,82 @@ export const createApp = (): Application => {
     res.json(await verifyChain(getCtx(req)));
   }));
 
-  // LAX Autonomous Brand Guardian Memory & Chat
+  // LAX Autonomous Brand Guardian with Cognee Memory Layer & Per-User Personalization
   app.get('/api/lax/memory', asyncHandler(async (req, res) => {
-    const laxKey = process.env.LAX_MEMORY_API_KEY || '3ddaf04065334504cd15d0764e14e3b3c8fa85b79548a7699d32d1e8cc021725';
+    const userId = (req.query.userId as string) || (req.query.role as string) || 'usr_sarah_creator';
+    const profile = cogneeMemoryService.getUserProfile(userId);
+    const stats = cogneeMemoryService.getMemoryStats();
+
     res.json({
       status: 'active',
-      memoryKey: laxKey,
-      keyPrefix: `${laxKey.substring(0, 4)}...${laxKey.substring(laxKey.length - 4)}`,
-      retentionPolicies: ['SER_v1.1', 'PROH_CLAIMS_v2', 'HEALTH_DISCLAIMER_FDA', 'TONE_ACCESSIBLE'],
+      memoryKey: stats.apiKeyPrefix,
+      engine: stats.engine,
+      personalizationActive: true,
+      userProfile: {
+        userId: profile.userId,
+        name: profile.name,
+        role: profile.role,
+        preferredTone: profile.preferredTone,
+        interactionCount: profile.interactionCount,
+        rememberedContexts: profile.rememberedContexts,
+      },
+      stats,
+      retentionPolicies: ['SER_v1.1', 'PROH_CLAIMS_v4.1', 'HEALTH_DISCLAIMER_FDA', 'TONE_ACCESSIBLE'],
       syncedAt: new Date().toISOString(),
     });
   }));
 
   app.post('/api/lax/chat', asyncHandler(async (req, res) => {
-    const { message } = req.body;
+    const { message, userId, userName, role } = req.body;
     if (!message) {
       return res.status(400).json({ error: { message: 'message is required' } });
     }
 
-    const lower = String(message).toLowerCase();
-    let reply = "I've checked that against your active v2.1 guidelines and stored this interaction in my verified memory bank. Everything looks compliant and grounded!";
-    let pose: 'approve' | 'protect' | 'alert' | 'analyze' = 'approve';
+    // Process through Cognee Memory Layer & LLM synthesis with per-user personalization
+    const result = await cogneeMemoryService.askLax(String(message), {
+      userId,
+      name: userName,
+      role,
+    });
 
-    if (lower.includes('guarantee') || lower.includes('100%') || lower.includes('infallible') || lower.includes('miracle')) {
-      reply = "⚠️ Heads up! Phrases like 'guarantee', '100% infallible', or 'miracle' trigger Prohibited Claims policy (PROH-002). My memory suggests replacing with: 'Architected with verified multi-layer defense'.";
-      pose = 'alert';
-    } else if (lower.includes('health') || lower.includes('immune') || lower.includes('cure') || lower.includes('natural')) {
-      reply = "💡 For wellness & natural claims, remember to pair with standard FDA disclaimer and ensure claims resolve to active SER clinical records per Verdant_R1.";
-      pose = 'protect';
-    } else if (lower.includes('cheap') || lower.includes('discount')) {
-      reply = "ℹ️ Tone & Terminology policy flag: 'cheap' detracts from brand equity. Consider 'accessible' or 'exceptional value' instead.";
-      pose = 'analyze';
+    res.json(result);
+  }));
+
+  app.post('/api/lax/memory/remember', asyncHandler(async (req, res) => {
+    const { text, dataset, userId, name } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: { message: 'text is required' } });
     }
 
+    const node = cogneeMemoryService.remember(
+      String(text),
+      dataset || (userId ? `user_memory_${userId}` : 'global_brand_knowledge'),
+      {
+        userId,
+        name: name || String(text).substring(0, 32),
+        type: 'user_preference',
+      }
+    );
+
+    cogneeMemoryService.cognify();
+
+    res.status(201).json({
+      success: true,
+      nodeId: node.id,
+      dataset: node.dataset,
+      timestamp: node.createdAt,
+    });
+  }));
+
+  app.post('/api/lax/memory/forget', asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const profile = cogneeMemoryService.getUserProfile(userId || 'creator');
+    profile.rememberedContexts = [];
+    profile.interactionCount = 0;
+
     res.json({
-      reply,
-      pose,
-      memoryTimestamp: new Date().toISOString(),
-      memoryReference: 'MEM_' + Math.random().toString(36).substring(2, 10),
+      success: true,
+      message: `Memory checkpoint cleared for ${profile.name}.`,
     });
   }));
 

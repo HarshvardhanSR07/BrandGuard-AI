@@ -502,7 +502,7 @@ export const WorkspacePage: React.FC = () => {
             </div>
           </div>
 
-          {/* LAX Autonomous Brand Guardian Memory Engine */}
+          {/* Cognee Memory Layer & LAX Personalization Engine */}
           <div className="p-5 rounded-xl border border-[#e4ddd3] bg-white shadow-card space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -510,25 +510,25 @@ export const WorkspacePage: React.FC = () => {
                   <Database className="w-4 h-4 text-[#15803d]" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-[#12161c]">LAX's Autonomous Memory Engine</h3>
+                  <h3 className="text-xs font-bold text-[#12161c]">Cognee Memory Layer & LAX Personalization</h3>
                   <div className="text-[11px] text-[#736d64]">
-                    Long-term contextual brand memory & conversational grounding
+                    Semantic knowledge graphs, vector recall & per-user personalized memory datasets
                   </div>
                 </div>
               </div>
               <Badge variant="approved" size="sm">
-                Memory Synced
+                Cognee Synced
               </Badge>
             </div>
 
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between">
                 <label className="text-[10px] font-mono uppercase text-[#736d64]">
-                  Active Memory API Key
+                  Cognee Memory API Key
                 </label>
                 <span className="text-[10px] text-[#15803d] font-semibold flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3 text-[#15803d]" />
-                  Active & Grounded
+                  Active & Personalized
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -541,14 +541,14 @@ export const WorkspacePage: React.FC = () => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => showToast("LAX's Memory API Key validated and synchronized.")}
+                  onClick={() => showToast("Cognee's Memory API Key validated and per-user datasets synchronized.")}
                   className="text-xs cursor-pointer"
                 >
                   Save Key
                 </Button>
               </div>
               <p className="text-[10px] text-[#8c857b]">
-                Key SHA: <span className="font-mono text-[#15803d]">3dda...1725</span> · Persistent retention of brand decisions & guideline checks.
+                Key SHA: <span className="font-mono text-[#15803d]">3dda...1725</span> · Partitioned per user (<span className="font-mono">user_memory_*</span>) with cross-policy graph traversals.
               </p>
             </div>
           </div>

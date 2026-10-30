@@ -5,7 +5,6 @@ import {
   Plus,
   Users,
   Shield,
-  Key,
   Search,
   Mail,
   Sparkles,
@@ -13,12 +12,7 @@ import {
   Trash2,
   Check,
   Lock,
-  Database,
   Sliders,
-  Send,
-  Webhook,
-  Cpu,
-  CheckCircle2,
 } from 'lucide-react';
 
 interface Member {
@@ -40,7 +34,7 @@ const INITIAL_MEMBERS: Member[] = [
 ];
 
 export const WorkspacePage: React.FC = () => {
-  const [tab, setTab] = useState<'members' | 'details' | 'access' | 'integrations'>('members');
+  const [tab, setTab] = useState<'members' | 'details' | 'access'>('members');
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<'Creator' | 'Reviewer' | 'Viewer'>('Creator');
@@ -57,12 +51,6 @@ export const WorkspacePage: React.FC = () => {
   // Access & Permissions State
   const [segregationOfDuties, setSegregationOfDuties] = useState(true);
   const [autoQuarantineViolations, setAutoQuarantineViolations] = useState(true);
-
-  // Integrations State
-  const [apiKey, setApiKey] = useState('HFAK••••••••••••••••••••••••••••');
-  const [laxMemoryApiKey, setLaxMemoryApiKey] = useState('3ddaf04065334504cd15d0764e14e3b3c8fa85b79548a7699d32d1e8cc021725');
-  const [webhookUrl, setWebhookUrl] = useState('https://hooks.slack.com/services/T00/B00/XXXXX');
-  const [isPinging, setIsPinging] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -104,14 +92,6 @@ export const WorkspacePage: React.FC = () => {
     showToast('RBAC policies and Segregation of Duties configuration saved.');
   };
 
-  const handleTestWebhook = () => {
-    setIsPinging(true);
-    setTimeout(() => {
-      setIsPinging(false);
-      showToast('Test compliance alert delivered to webhook endpoint successfully! (HTTP 200 OK)');
-    }, 700);
-  };
-
   return (
     <div className="space-y-5">
       {/* Toast Notification */}
@@ -127,7 +107,7 @@ export const WorkspacePage: React.FC = () => {
         <div>
           <h1 className="text-xl font-bold tracking-tight text-[#12161c]">Workspace Settings</h1>
           <p className="text-xs text-[#736d64] mt-0.5">
-            Manage organization members, segregation of duties roles, and API integrations.
+            Manage organization members, segregation of duties roles, and workspace access.
           </p>
         </div>
         {tab === 'members' && (
@@ -149,7 +129,6 @@ export const WorkspacePage: React.FC = () => {
           { key: 'members', label: 'Members', icon: Users },
           { key: 'details', label: 'Configure Details', icon: Sliders },
           { key: 'access', label: 'Access & Permissions', icon: Shield },
-          { key: 'integrations', label: 'Integrations', icon: Key },
         ].map((t) => (
           <button
             key={t.key}
@@ -428,176 +407,7 @@ export const WorkspacePage: React.FC = () => {
         </form>
       )}
 
-      {/* TAB 4: INTEGRATIONS */}
-      {tab === 'integrations' && (
-        <div className="space-y-4 max-w-2xl">
-          {/* MongoDB Dev Database Status */}
-          <div className="p-5 rounded-xl border border-[#e4ddd3] bg-white shadow-card space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#dcfce7] text-[#15803d] flex items-center justify-center">
-                  <Database className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#12161c]">MongoDB Database Connection</h3>
-                  <div className="text-[11px] text-[#736d64] font-mono">
-                    mongodb://127.0.0.1:27017/brandguard_dev
-                  </div>
-                </div>
-              </div>
-              <Badge variant="approved" size="sm">
-                Connected · 27017
-              </Badge>
-            </div>
-            <p className="text-[11px] text-[#4b5563]">
-              Active persistence layer seeded with 14 brand rulebooks and SER evidence records.
-            </p>
-          </div>
 
-          {/* Hugging Face / AI Model Engine */}
-          <div className="p-5 rounded-xl border border-[#e4ddd3] bg-white shadow-card space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#eff6ed] text-[#295d36] flex items-center justify-center">
-                  <Cpu className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#12161c]">BrandGuard AI Compliance Engine</h3>
-                  <div className="text-[11px] text-[#736d64]">
-                    Deterministic rule-grounding + LLM Boundary Adapter
-                  </div>
-                </div>
-              </div>
-              <Badge variant="approved" size="sm">
-                API Key Enabled
-              </Badge>
-            </div>
-
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-mono uppercase text-[#736d64]">
-                  Active API Token (Model: aliasLLM/brandguard-ai-model)
-                </label>
-                <span className="text-[10px] text-[#15803d] font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-[#15803d]" />
-                  Active & Loaded
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="flex-1 h-8 px-3 text-xs bg-[#faf7f2] font-mono border border-[#d9d1c5] rounded-lg focus:outline-none focus:border-[#3f7449]"
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => showToast('API key configuration validated and active.')}
-                  className="text-xs cursor-pointer"
-                >
-                  Update
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Cognee Memory Layer & LAX Personalization Engine */}
-          <div className="p-5 rounded-xl border border-[#e4ddd3] bg-white shadow-card space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#f0fdf4] text-[#15803d] flex items-center justify-center">
-                  <Database className="w-4 h-4 text-[#15803d]" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#12161c]">Cognee Memory Layer & LAX Personalization</h3>
-                  <div className="text-[11px] text-[#736d64]">
-                    Semantic knowledge graphs, vector recall & per-user personalized memory datasets
-                  </div>
-                </div>
-              </div>
-              <Badge variant="approved" size="sm">
-                Cognee Synced
-              </Badge>
-            </div>
-
-            <div className="space-y-1.5 pt-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[10px] font-mono uppercase text-[#736d64]">
-                  Cognee Memory API Key
-                </label>
-                <span className="text-[10px] text-[#15803d] font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-[#15803d]" />
-                  Active & Personalized
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={laxMemoryApiKey}
-                  onChange={(e) => setLaxMemoryApiKey(e.target.value)}
-                  className="flex-1 h-8 px-3 text-xs bg-[#faf7f2] font-mono border border-[#d9d1c5] rounded-lg focus:outline-none focus:border-[#3f7449]"
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => showToast("Cognee's Memory API Key validated and per-user datasets synchronized.")}
-                  className="text-xs cursor-pointer"
-                >
-                  Save Key
-                </Button>
-              </div>
-              <p className="text-[10px] text-[#8c857b]">
-                Key SHA: <span className="font-mono text-[#15803d]">3dda...1725</span> · Partitioned per user (<span className="font-mono">user_memory_*</span>) with cross-policy graph traversals.
-              </p>
-            </div>
-          </div>
-
-          {/* Webhook Notifications */}
-          <div className="p-5 rounded-xl border border-[#e4ddd3] bg-white shadow-card space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#fff7ed] text-[#c2410c] flex items-center justify-center">
-                  <Webhook className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#12161c]">Compliance Webhook Alerts</h3>
-                  <div className="text-[11px] text-[#736d64]">
-                    Broadcast review queue requests & high-priority findings
-                  </div>
-                </div>
-              </div>
-              <Badge variant="draft" size="sm">
-                Live Broadcast
-              </Badge>
-            </div>
-
-            <div className="space-y-1.5 pt-1">
-              <label className="text-[10px] font-mono uppercase text-[#736d64]">
-                Webhook Endpoint URL
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="url"
-                  value={webhookUrl}
-                  onChange={(e) => setWebhookUrl(e.target.value)}
-                  className="flex-1 h-8 px-3 text-xs font-mono border border-[#d9d1c5] rounded-lg focus:outline-none focus:border-[#3f7449]"
-                />
-                <Button
-                  size="sm"
-                  variant="lime"
-                  onClick={handleTestWebhook}
-                  disabled={isPinging}
-                  className="text-xs cursor-pointer gap-1.5"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isPinging ? 'Sending…' : 'Test Ping'}</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Invite Member Modal */}
       {isInviteOpen && (

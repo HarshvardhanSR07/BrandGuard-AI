@@ -10,3 +10,4 @@ export { Finding, type IFinding, type FindingRec, type EvidenceRef } from './Fin
 export { ReviewDecision, type IReviewDecision, type ReviewDecisionRec } from './ReviewDecision';
 export { AuditEvent, type IAuditEvent, type AuditEventRec } from './AuditEvent';
 export { Upload, type IUpload, type UploadRec } from './Upload';
+export { Invitation, type IInvitation, type InvitationRec } from './Invitation';

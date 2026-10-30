@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
-import { ArrowRight, Eye, EyeOff, ShieldCheck, Sparkles, Check, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, ShieldCheck, Sparkles, Check, AlertCircle, Loader2, UserCheck } from 'lucide-react';
 import { Mascot } from '../../components/ui/Mascot';
+import { useAuthStore } from './authStore';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -84,6 +85,18 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const handleDemoLogin = async (demoRole: 'creator' | 'reviewer' | 'admin') => {
+    setIsSubmitting(true);
+    setAuthError('');
+    try {
+      await useAuthStore.getState().devSwitchAccount(demoRole);
+      navigate('/dashboard');
+    } catch (err: any) {
+      setAuthError(err?.message || 'Login failed');
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -91,6 +104,19 @@ export const LoginPage: React.FC = () => {
     setAuthError('');
 
     try {
+      // 1. Primary Authenticated Session via BrandGuard Backend
+      try {
+        await useAuthStore.getState().login(email, password);
+        navigate('/dashboard');
+        return;
+      } catch (backendErr: any) {
+        // If backend failed due to wrong password, don't fallback to mock
+        if (backendErr?.status === 401 || backendErr?.message?.includes('Invalid')) {
+          throw backendErr;
+        }
+      }
+
+      // 2. Clerk Authentication fallback if configured
       if (mode === 'signin') {
         if (isSignInLoaded && signIn && setActive) {
           const result = await signIn.create({
@@ -102,8 +128,6 @@ export const LoginPage: React.FC = () => {
             await setActive({ session: result.createdSessionId });
             navigate('/dashboard');
             return;
-          } else {
-            console.log('SignIn status:', result.status);
           }
         }
       } else {
@@ -131,10 +155,7 @@ export const LoginPage: React.FC = () => {
         }
       }
 
-      // Default fallback
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 450);
+      navigate('/dashboard');
     } catch (err: any) {
       console.error('Auth error:', err);
       const msg = err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || 'Invalid credentials. Please verify your details.';
@@ -579,6 +600,51 @@ export const LoginPage: React.FC = () => {
                       </div>
                     )}
                   </motion.div>
+
+                  {/* Quick Authenticated Demo Access (Creator, Reviewer, Admin) */}
+                  <motion.div variants={itemVariants} className="pt-3.5 border-t border-[#ded7cc]/80 text-center">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#736c62] font-semibold flex items-center gap-1">
+                        <UserCheck className="w-3 h-3 text-[#1e5438]" />
+                        <span>Demo Identities (Role-Based Access)</span>
+                      </span>
+                      <span className="text-[9px] text-[#9ca3af]">PW: BrandGuard2026!</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDemoLogin('creator')}
+                        disabled={isSubmitting}
+                        className="p-2 rounded-xl border border-[#ded7cc] bg-white hover:bg-[#f3eee7] text-left transition-all cursor-pointer group shadow-xs disabled:opacity-60"
+                        title="Sign in as Lead Content Creator"
+                      >
+                        <span className="block font-bold text-xs text-[#1e5438] group-hover:text-[#113a25]">Creator</span>
+                        <span className="block text-[10px] text-[#736c62] truncate">Alex Morgan</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDemoLogin('reviewer')}
+                        disabled={isSubmitting}
+                        className="p-2 rounded-xl border border-[#ded7cc] bg-white hover:bg-[#f3eee7] text-left transition-all cursor-pointer group shadow-xs disabled:opacity-60"
+                        title="Sign in as Senior Compliance Reviewer"
+                      >
+                        <span className="block font-bold text-xs text-[#1e5438] group-hover:text-[#113a25]">Reviewer</span>
+                        <span className="block text-[10px] text-[#736c62] truncate">Marcus Vance</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDemoLogin('admin')}
+                        disabled={isSubmitting}
+                        className="p-2 rounded-xl border border-[#ded7cc] bg-white hover:bg-[#f3eee7] text-left transition-all cursor-pointer group shadow-xs disabled:opacity-60"
+                        title="Sign in as Workspace Administrator"
+                      >
+                        <span className="block font-bold text-xs text-[#1e5438] group-hover:text-[#113a25]">Admin</span>
+                        <span className="block text-[10px] text-[#736c62] truncate">Elena Rostova</span>
+                      </button>
+                    </div>
+                  </motion.div>
                 </form>
               </motion.div>
             )}
@@ -596,23 +662,129 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* ======================================================== */}
-      {/* RIGHT COLUMN: Luxury Editorial Artwork Area              */}
+      {/* RIGHT COLUMN: Avant-Garde Editorial Visual (LAX Hero)      */}
       {/* ======================================================== */}
-      <div className="hidden lg:block lg:w-[52%] xl:w-[55%] h-full relative overflow-hidden bg-[#0d1f15]">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('/editorial-login-hero.png')` }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#06120c] via-transparent to-black/30" />
-        <div className="absolute bottom-12 left-12 right-12 text-white space-y-2 z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-mono tracking-wider uppercase text-[#86efac]">
-            <Sparkles className="w-3 h-3 text-[#86efac]" />
-            <span>Autonomous Brand Guard</span>
+      <div className="hidden lg:flex flex-1 lg:w-[52%] xl:w-[55%] h-full bg-[#0a0c10] text-white relative overflow-hidden flex-col justify-between p-8 xl:p-12">
+        {/* Full-Bleed Mascot Editorial Artwork */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <motion.img
+            src="/mascot-editorial-hero.jpg"
+            alt="BrandGuard Mascot LAX Editorial Campaign with Fluted Glass Ripple"
+            initial={{ scale: 1.05, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            className="w-full h-full object-cover object-center filter brightness-[0.92] contrast-[1.05]"
+          />
+          {/* Subtle Dark Vignette & Atmospheric Gradients */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#08090c] via-transparent to-[#08090c]/60 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0c10]/75 via-transparent to-[#0a0c10]/45 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_30%,_rgba(6,8,11,0.65)_100%)] pointer-events-none" />
+        </div>
+
+        {/* Top Header Overlay: LAX Guard Badge & BrandGuard Title */}
+        <div className="relative z-20 w-full flex items-center justify-between">
+          {/* Floating Badge: Mascot LAX Policy Indicator */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#12161c]/80 backdrop-blur-md border border-white/10 shadow-lg"
+          >
+            <div className="w-5 h-5 rounded-full overflow-hidden bg-[#1e5438]/40 border border-[#84cc16]/50 flex items-center justify-center">
+              <img
+                src="/lax-icon.png"
+                alt="LAX Mascot"
+                className="w-4 h-4 object-contain"
+              />
+            </div>
+            <span className="text-xs font-medium text-white/90 tracking-wide flex items-center gap-1.5">
+              LAX Guard <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#84cc16] animate-pulse" />
+            </span>
+          </motion.div>
+
+          {/* Top-Right High-Fashion Brand Title */}
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.7 }}
+            className="text-right"
+          >
+            <span className="font-serif text-3xl xl:text-4xl font-normal tracking-tight text-white/95 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+              BrandGuard
+            </span>
+          </motion.div>
+        </div>
+
+        {/* Signature Fluted Glass Ripple Banner Overlay Across the Frame */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-36 z-10 pointer-events-none overflow-hidden">
+          <div
+            className="w-full h-full backdrop-blur-[2px] opacity-90 border-y border-white/15 shadow-[0_10px_35px_rgba(0,0,0,0.5)]"
+            style={{
+              background:
+                'repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.12) 12px, rgba(0,0,0,0.15) 24px, rgba(255,255,255,0.03) 36px)',
+            }}
+          />
+          {/* Chromatic Shimmer Glide Animation */}
+          <motion.div
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{ repeat: Infinity, duration: 8, ease: 'linear' }}
+            className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 pointer-events-none"
+          />
+        </div>
+
+        {/* Floating Brand Elements */}
+        {/* 1. Floating Speech Bubble: "Same Ideas. Higher Standards." */}
+        <motion.div
+          animate={{ y: [0, -6, 0] }}
+          transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut' }}
+          className="absolute right-10 xl:right-16 top-24 z-20 hidden xl:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-black/70 backdrop-blur-md border border-white/15 text-white shadow-xl"
+        >
+          <div className="w-2 h-2 rounded-full bg-[#84cc16] animate-ping" />
+          <span className="text-xs font-medium tracking-wide">
+            "Same Ideas. Higher Standards."
+          </span>
+        </motion.div>
+
+        {/* 2. Floating Compliance Tag: BRAND SAFE • 100% */}
+        <motion.div
+          animate={{ y: [0, 7, 0] }}
+          transition={{ repeat: Infinity, duration: 5.2, ease: 'easeInOut', delay: 0.5 }}
+          className="absolute left-10 xl:left-14 top-32 z-20 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#141b16]/85 backdrop-blur-md border border-[#84cc16]/40 text-[#c7f284] shadow-lg text-[11px] font-mono tracking-tight"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-[#84cc16]" />
+          <span>BRAND SAFE • 100%</span>
+        </motion.div>
+
+        {/* Bottom Editorial Content Overlay */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.8 }}
+          className="relative z-20 max-w-lg space-y-3"
+        >
+          {/* Editorial Subject Heading: "LAX Guardian" */}
+          <div className="space-y-1">
+            <h2 className="font-serif text-3xl xl:text-4xl text-white font-normal tracking-tight drop-shadow-md">
+              LAX Guardian
+            </h2>
+            <div className="text-xs font-mono uppercase tracking-wider text-[#86efac] flex items-center gap-1.5">
+              <span>One standard. Zero false greens.</span>
+            </div>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-serif text-[#f8faf5] leading-tight">
-            One standard. Zero false greens.
-          </h2>
-          <p className="text-xs text-[#a3b8a6] max-w-md leading-relaxed">
+
+          {/* Editorial Description Blurb */}
+          <p className="text-xs sm:text-[13px] text-white/80 font-sans leading-relaxed drop-shadow-sm max-w-md">
+            BrandGuard AI synchronizes generative intelligence with institutional brand integrity.
+            Autonomous vision models analyze campaigns in milliseconds, safeguarding your voice across global frontiers.
+          </p>
+
+          <p className="text-[11px] text-[#a3b8a6] max-w-md leading-relaxed">
             Continuously auditing drafts against approved truth benchmarks and regulatory compliance rules.
           </p>
-        </div>
+
+          {/* Thin Champagne Accent Rule */}
+          <div className="w-12 h-[1.5px] bg-gradient-to-r from-[#d8c7a8] to-transparent rounded-full mt-2" />
+        </motion.div>
       </div>
     </div>
   );

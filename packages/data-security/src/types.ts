@@ -54,6 +54,7 @@ export const AUDIT_ACTIONS = [
   'analysis.started', 'analysis.finished', 'finding.accepted', 'finding.dismissed',
   'policy.created', 'policy.retired', 'fact.created', 'fact.retired',
   'membership.added', 'membership.role_changed', 'membership.removed',
+  'invitation.created', 'invitation.revoked',
   'upload.created',
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

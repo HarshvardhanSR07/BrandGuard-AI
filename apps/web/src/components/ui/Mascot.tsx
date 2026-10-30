@@ -77,15 +77,24 @@ export type MascotProps = {
   className?: string;
   /** What a screen reader calls it. */
   label?: string;
+  /** Clean static fallback image if sprite sheets cannot load */
+  fallbackImage?: string;
 };
 
 export function Mascot(props: MascotProps) {
-  const { directions, reactions, size = 140, className, label = 'mascot' } = props;
+  const { directions, reactions, size = 140, className, label = 'mascot', fallbackImage } = props;
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const squashRef = useRef<HTMLSpanElement>(null);
   const timersRef = useRef<number[]>([]);
   const boopsRef = useRef({ count: 0, at: 0 });
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = directions;
+    img.onerror = () => setHasError(true);
+  }, [directions]);
 
   // Cross-fading direction states for buttery smooth gaze transitions
   const [activeDirection, setActiveDirection] = useState<Direction>('center');
@@ -218,6 +227,17 @@ export function Mascot(props: MascotProps) {
 
     squashRef.current?.animate(SQUASH, { duration: SQUASH_MS, easing: 'linear' });
   };
+
+  if (hasError && fallbackImage) {
+    return (
+      <img
+        src={fallbackImage}
+        alt={label}
+        style={{ width: size, height: size, objectFit: 'contain' }}
+        className={className}
+      />
+    );
+  }
 
   return (
     <button

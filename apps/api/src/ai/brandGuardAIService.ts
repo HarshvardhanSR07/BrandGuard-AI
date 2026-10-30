@@ -155,15 +155,64 @@ export class BrandGuardAIService {
     const findings: any[] = [];
     const lower = draft_text.toLowerCase();
 
-    // Check for obvious off-brand patterns for local testing
+    // Check for obvious off-brand patterns for local testing & demos
+    if (lower.includes('100% infallible') || lower.includes('infallible')) {
+      const match = draft_text.includes('100% infallible') ? '100% infallible' : 'infallible';
+      findings.push({
+        finding_id: findings.length + 1,
+        issue_category: 'Factual Claim',
+        severity: 'High',
+        affected_text: match,
+        rule_reference: `${brand_id}_R1`,
+        evidence_references: ['EVID_V_02'],
+        claim_status: 'Unverified',
+        explanation: 'Absolute reliability claims require verified engineering SLA documentation. Prohibited under brand truth rules.',
+        corrected_text: 'fault-tolerant',
+        human_review_required: true,
+      });
+    }
+
+    if (lower.includes('zero downtime')) {
+      findings.push({
+        finding_id: findings.length + 1,
+        issue_category: 'Factual Claim',
+        severity: 'High',
+        affected_text: 'zero downtime',
+        rule_reference: `${brand_id}_R2`,
+        evidence_references: ['EVID_V_02'],
+        claim_status: 'Unverified',
+        explanation: 'Unqualified zero-downtime promise violates disclosure standards. Specify high-availability percentage SLA.',
+        corrected_text: '99.99% high-availability SLA',
+        human_review_required: true,
+      });
+    }
+
+    if (lower.includes('boost your immune system')) {
+      const match = draft_text.includes('Naturally boost your immune system')
+        ? 'Naturally boost your immune system'
+        : 'boost your immune system';
+      findings.push({
+        finding_id: findings.length + 1,
+        issue_category: 'Factual Claim',
+        severity: 'High',
+        affected_text: match,
+        rule_reference: `${brand_id}_R1`,
+        evidence_references: ['EVID_V_01'],
+        claim_status: 'Unverified',
+        explanation: 'Benefit claims must resolve to active record in SER. Direct health assertions require verified trial data.',
+        corrected_text: 'Supports your overall wellness journey',
+        human_review_required: true,
+      });
+    }
+
     if (lower.includes('cheap')) {
       findings.push({
         finding_id: findings.length + 1,
         issue_category: 'Tone',
         severity: 'Medium',
         affected_text: 'cheap',
-        rule_reference: `${brand_id}_R1`,
-        evidence_references: ['SER_001'],
+        rule_reference: `${brand_id}_R4`,
+        evidence_references: ['EVID_V_04'],
         claim_status: 'Supported',
         explanation: 'Off-brand phrasing: the brand requires premium and accessible terminology instead of "cheap".',
         corrected_text: 'accessible',
@@ -175,12 +224,12 @@ export class BrandGuardAIService {
       findings.push({
         finding_id: findings.length + 1,
         issue_category: 'Terminology',
-        severity: 'Medium',
+        severity: 'High',
         affected_text: 'all-natural',
-        rule_reference: `${brand_id}_R3`,
-        evidence_references: ['SER_001'],
-        claim_status: 'Supported',
-        explanation: 'Use certified plant-derived instead of unqualified "all-natural".',
+        rule_reference: `${brand_id}_R2`,
+        evidence_references: ['EVID_V_02'],
+        claim_status: 'Unverified',
+        explanation: "Rule prohibits absolute term 'all-natural' without verified exception.",
         corrected_text: 'plant-derived',
         human_review_required: false,
       });
@@ -189,14 +238,30 @@ export class BrandGuardAIService {
     if (lower.includes('chemical-free')) {
       findings.push({
         finding_id: findings.length + 1,
-        issue_category: 'Factual Claim',
+        issue_category: 'Terminology',
         severity: 'High',
         affected_text: 'chemical-free',
-        rule_reference: `${brand_id}_R4`,
-        evidence_references: ['SER_001'],
+        rule_reference: `${brand_id}_R2`,
+        evidence_references: ['EVID_V_02'],
         claim_status: 'Conflicting',
-        explanation: 'Scientifically misleading claim: all physical matter is chemical.',
-        corrected_text: 'synthetic-free',
+        explanation: 'Descriptor "chemical-free" violates brand truth standards. Scientifically misleading.',
+        corrected_text: 'carefully formulated',
+        human_review_required: true,
+      });
+    }
+
+    if (lower.includes('guaranteed results') || lower.includes('guaranteed return')) {
+      const match = lower.includes('guaranteed results') ? 'guaranteed results' : 'guaranteed return';
+      findings.push({
+        finding_id: findings.length + 1,
+        issue_category: 'Factual Claim',
+        severity: 'High',
+        affected_text: match,
+        rule_reference: `${brand_id}_R1`,
+        evidence_references: ['EVID_V_03'],
+        claim_status: 'Unverified',
+        explanation: 'Guaranteed performance outcome violates regulatory truth standards.',
+        corrected_text: 'proven support',
         human_review_required: true,
       });
     }
@@ -208,7 +273,7 @@ export class BrandGuardAIService {
         severity: 'Critical',
         affected_text: '100% cure',
         rule_reference: `${brand_id}_R2`,
-        evidence_references: ['SER_002'],
+        evidence_references: ['EVID_V_02'],
         claim_status: 'Unverified',
         explanation: 'Unsubstantiated medical claim without clinical backing in SER.',
         corrected_text: null,

@@ -140,7 +140,21 @@ export class CogneeMemoryService {
       });
     }
 
-    // 2. Ingest Default Personas for Sarah Chen (Creator), Marcus Vance (Reviewer), Elena Rostova (Admin)
+    // 2. Ingest Default Personas for Alex Morgan (Creator), Marcus Vance (Reviewer), Elena Rostova (Admin)
+    this.registerUserProfile({
+      userId: 'usr_alex_creator',
+      name: 'Alex Morgan',
+      role: 'creator',
+      preferredTone: 'creative, inspiring, copywriter-friendly with rapid rewrite suggestions',
+      interactionCount: 5,
+      frequentTopics: ['social copy', 'headlines', 'recycled claims', 'tone adjustment'],
+      rememberedContexts: [
+        'Currently drafting the Summer Campaign social posts (DRF-204) and Email New Pricing (DRF-203).',
+        'Prefers positive encouragement with 2-3 instant on-brand rewrite alternatives for any flagged phrase.',
+      ],
+      lastActive: now,
+    });
+
     this.registerUserProfile({
       userId: 'usr_sarah_creator',
       name: 'Sarah Chen',
@@ -184,12 +198,12 @@ export class CogneeMemoryService {
     });
 
     // Alias common user roles so casual or default requests find their persona immediately
-    const sarah = this.userProfiles.get('usr_sarah_creator')!;
+    const alex = this.userProfiles.get('usr_alex_creator')!;
     const marcus = this.userProfiles.get('usr_marcus_reviewer')!;
     const elena = this.userProfiles.get('usr_elena_admin')!;
 
-    this.userProfiles.set('creator', sarah);
-    this.userProfiles.set('alex_morgan', sarah);
+    this.userProfiles.set('creator', alex);
+    this.userProfiles.set('alex_morgan', alex);
     this.userProfiles.set('reviewer', marcus);
     this.userProfiles.set('sam_rivera', marcus);
     this.userProfiles.set('admin', elena);
@@ -388,7 +402,7 @@ export class CogneeMemoryService {
 
     const newProfile: UserPersonalizationProfile = {
       userId: userIdOrRole,
-      name: role === 'creator' ? 'Sarah Chen' : role === 'reviewer' ? 'Marcus Vance' : 'Elena Rostova',
+      name: role === 'creator' ? 'Alex Morgan' : role === 'reviewer' ? 'Marcus Vance' : 'Elena Rostova',
       role,
       preferredTone:
         role === 'creator'
@@ -416,11 +430,12 @@ export class CogneeMemoryService {
       userId?: string;
       name?: string;
       role?: string;
+      workspaceId?: string;
     }
   ): Promise<LaxChatResponse> {
-    const userId = userInfo?.userId || userInfo?.role || 'usr_sarah_creator';
+    const userId = userInfo?.userId || userInfo?.role || 'usr_alex_creator';
     const profile = this.getUserProfile(userId);
-    if (userInfo?.name) profile.name = userInfo.name;
+    if (userInfo?.name && userInfo.name.trim()) profile.name = userInfo.name.trim();
     if (userInfo?.role) profile.role = userInfo.role as any;
 
     profile.interactionCount += 1;

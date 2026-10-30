@@ -16,6 +16,7 @@
     "build:security": "npm --prefix packages/data-security run build",
     "test": "npm --prefix apps/web run test",
     "seed": "tsx scripts/seed.ts",
+    "seed:demo": "tsx packages/data-security/src/seed/seedDemoUsers.ts",
     "seed:reset": "tsx packages/data-security/src/seed/seed.ts --reset",
     "seed:ser": "tsx packages/data-security/src/seed/seedSERAndRulebooks.ts",
     "atlas:setup": "node scripts/atlas-setup.js",

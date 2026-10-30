@@ -44,6 +44,10 @@ const WorkspacePage = lazy(() =>
 const AuditLogPage = lazy(() =>
   import('../features/audit/AuditLogPage').then((m) => ({ default: m.AuditLogPage }))
 );
+const UsersAndRolesPage = lazy(() =>
+  import('../features/members/UsersAndRolesPage').then((m) => ({ default: m.UsersAndRolesPage }))
+);
+import { RequireRole } from '../components/auth/RequireRole';
 
 const withSuspense = (Component: React.ComponentType) => (
   <Suspense fallback={<PageSkeleton />}>
@@ -98,15 +102,23 @@ export const router = createBrowserRouter([
         path: 'analysis',
         element: withSuspense(AnalysisPage),
       },
-      // Screen 07: Review Queue Workstation
+      // Screen 07: Review Queue Workstation (Reviewer & Admin only)
       {
         path: 'review',
-        element: withSuspense(ReviewQueuePage),
+        element: (
+          <RequireRole allowedRoles={['reviewer', 'admin']}>
+            {withSuspense(ReviewQueuePage)}
+          </RequireRole>
+        ),
       },
-      // Screen 08: Review Details & Decision Studio
+      // Screen 08: Review Details & Decision Studio (Reviewer & Admin only)
       {
         path: 'review/:id',
-        element: withSuspense(ReviewDetailPage),
+        element: (
+          <RequireRole allowedRoles={['reviewer', 'admin']}>
+            {withSuspense(ReviewDetailPage)}
+          </RequireRole>
+        ),
       },
       // Screen 09: Brand Policies & Rulebooks
       {
@@ -127,6 +139,15 @@ export const router = createBrowserRouter([
       {
         path: 'audit',
         element: withSuspense(AuditLogPage),
+      },
+      // Users & Roles Management (Admin only)
+      {
+        path: 'members',
+        element: (
+          <RequireRole allowedRoles={['admin']}>
+            {withSuspense(UsersAndRolesPage)}
+          </RequireRole>
+        ),
       },
       // Screen 13: Workspace Settings & Integrations
       {

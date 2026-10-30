@@ -36,6 +36,9 @@ import {
   Palette,
   Activity,
   Sliders,
+  AlertTriangle,
+  UserCheck,
+  Inbox,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspace } from '../../hooks/useWorkspace';
@@ -482,38 +485,91 @@ export const DashboardPage: React.FC = () => {
               {/* Main Headline & Tagline with Mint Accent Typography */}
               <div className="space-y-1">
                 <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif tracking-tight text-[#f8faf5] leading-[1.12]">
-                  One brand standard.
+                  {role === 'creator'
+                    ? 'Create with confidence.'
+                    : role === 'reviewer'
+                    ? 'Review Decision Workstation.'
+                    : 'One brand standard.'}
                 </h1>
                 <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-serif italic text-[#86efac] tracking-tight leading-[1.15]">
-                  Every message. Everywhere.
+                  {role === 'creator'
+                    ? 'Every claim verified in real-time.'
+                    : role === 'reviewer'
+                    ? 'Evidence-backed. Segregation of duties.'
+                    : 'Every message. Everywhere.'}
                 </h2>
               </div>
 
               {/* Supporting Editorial Description */}
               <p className="text-xs sm:text-sm text-[#a3b8a6] leading-relaxed max-w-lg">
-                Keep every campaign consistent, every claim accountable, and every message aligned with your brand identity.
+                {role === 'creator'
+                  ? 'Draft campaign copy with live rulebook verification, automated suggested corrections, and zero false greens.'
+                  : role === 'reviewer'
+                  ? 'Inspect pending submissions against regulatory policies and verified truth records. Segregation of duties enforced.'
+                  : 'Keep every campaign consistent, every claim accountable, and every message aligned with your brand identity.'}
               </p>
             </div>
 
-            {/* CTAs: Primary & Secondary Actions */}
+            {/* CTAs: Primary & Secondary Actions tailored to role */}
             <div className="flex flex-wrap items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => navigate('/drafts/new')}
-                className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-[#051c0a] text-xs sm:text-sm font-bold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
-              >
-                <Plus className="w-4 h-4 stroke-[2.5]" />
-                <span>Start Content Review</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => navigate('/governance')}
-                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-[#f8faf5] text-xs sm:text-sm font-medium backdrop-blur-sm transition-all cursor-pointer"
-              >
-                <Activity className="w-4 h-4 text-[#86efac]" />
-                <span>View Governance Insights</span>
-              </button>
+              {role === 'creator' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/drafts/new')}
+                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-[#051c0a] text-xs sm:text-sm font-bold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4 stroke-[2.5]" />
+                    <span>Create New Draft</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/drafts')}
+                    className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-[#f8faf5] text-xs sm:text-sm font-medium backdrop-blur-sm transition-all cursor-pointer"
+                  >
+                    <FileText className="w-4 h-4 text-[#86efac]" />
+                    <span>View My Drafts</span>
+                  </button>
+                </>
+              ) : role === 'reviewer' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/review')}
+                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-[#051c0a] text-xs sm:text-sm font-bold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
+                    <span>Open Review Queue</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/approved-facts')}
+                    className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-[#f8faf5] text-xs sm:text-sm font-medium backdrop-blur-sm transition-all cursor-pointer"
+                  >
+                    <FileCheck2 className="w-4 h-4 text-[#86efac]" />
+                    <span>Browse Approved Evidence</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/members')}
+                    className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-[#051c0a] text-xs sm:text-sm font-bold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
+                  >
+                    <Users className="w-4 h-4 stroke-[2.5]" />
+                    <span>Manage Users & Roles</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/policies')}
+                    className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-[#f8faf5] text-xs sm:text-sm font-medium backdrop-blur-sm transition-all cursor-pointer"
+                  >
+                    <BookOpen className="w-4 h-4 text-[#86efac]" />
+                    <span>Configure Brand Policies</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -1009,115 +1065,271 @@ export const DashboardPage: React.FC = () => {
       {/* 2. METRIC STAT CARDS ROW: 4 Clean Cards with Sparklines   */}
       {/* ========================================================= */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Total Scans */}
-        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
-              <FileText className="w-5 h-5 text-[#10b981]" />
-            </div>
-            <div>
-              <span className="text-xs text-[#6b7280] font-medium block">Total Scans</span>
-              <div className="text-2xl font-bold text-[#111827] mt-0.5">124</div>
-              <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
-                <span>↑</span> +12% from last month
-              </span>
-            </div>
-          </div>
-          {/* Sparkline Wave SVG */}
-          <div className="w-16 h-8 shrink-0">
-            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
-              <path
-                d="M2 24 C 14 26, 24 16, 36 20 C 46 24, 54 8, 62 10"
-                stroke="#10b981"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* Card 2: Compliance Score */}
-        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-5 h-5 text-[#10b981]" />
-            </div>
-            <div>
-              <span className="text-xs text-[#6b7280] font-medium block">Compliance Score</span>
-              <div className="text-2xl font-bold text-[#111827] mt-0.5">
-                92 <span className="text-sm font-normal text-[#9ca3af]">/100</span>
+        {role === 'creator' ? (
+          <>
+            {/* Creator Card 1: My Content Drafts */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-[#10b981]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">My Content Drafts</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">3</div>
+                  <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                    <span>↑</span> +1 new this week
+                  </span>
+                </div>
               </div>
-              <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
-                <span>↑</span> +4% from last month
-              </span>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 24 C 14 26, 24 16, 36 20 C 46 24, 54 8, 62 10" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
             </div>
-          </div>
-          {/* Sparkline Wave SVG */}
-          <div className="w-16 h-8 shrink-0">
-            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
-              <path
-                d="M2 28 C 16 30, 26 18, 38 22 C 48 24, 52 10, 62 8"
-                stroke="#10b981"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </div>
 
-        {/* Card 3: Drafts Approved */}
-        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0">
-              <Folder className="w-5 h-5 text-[#d97706]" />
+            {/* Creator Card 2: Open Findings */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#fef2f2] text-[#ef4444] flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-[#ef4444]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Open Findings</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">
+                    2 <span className="text-xs font-normal text-[#ef4444] font-medium">(1 high-sev)</span>
+                  </div>
+                  <span className="text-[11px] text-[#dc2626] font-medium flex items-center gap-0.5 mt-0.5">
+                    Requires claim citation
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 28 C 16 30, 26 18, 38 22 C 48 24, 52 10, 62 8" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
             </div>
-            <div>
-              <span className="text-xs text-[#6b7280] font-medium block">Drafts Approved</span>
-              <div className="text-2xl font-bold text-[#111827] mt-0.5">36</div>
-              <span className="text-[11px] text-[#d97706] font-medium flex items-center gap-0.5 mt-0.5">
-                <span>↑</span> 70% pass rate
-              </span>
-            </div>
-          </div>
-          {/* Sparkline Wave SVG */}
-          <div className="w-16 h-8 shrink-0">
-            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
-              <path
-                d="M2 26 C 16 28, 28 20, 38 24 C 48 26, 52 14, 62 12"
-                stroke="#d97706"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </div>
 
-        {/* Card 4: Active Campaigns */}
-        <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl bg-[#f5f3ff] text-[#8b5cf6] flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5 text-[#8b5cf6]" />
+            {/* Creator Card 3: Awaiting Review */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-[#d97706]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Awaiting Review</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">1</div>
+                  <span className="text-[11px] text-[#d97706] font-medium flex items-center gap-0.5 mt-0.5">
+                    In reviewer queue
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 26 C 16 28, 28 20, 38 24 C 48 26, 52 14, 62 12" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
             </div>
-            <div>
-              <span className="text-xs text-[#6b7280] font-medium block">Active Campaigns</span>
-              <div className="text-2xl font-bold text-[#111827] mt-0.5">8</div>
-              <span className="text-[11px] text-[#8b5cf6] font-medium flex items-center gap-0.5 mt-0.5">
-                <span>↑</span> +2 new this month
-              </span>
+
+            {/* Creator Card 4: Published & Compliant */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-5 h-5 text-[#10b981]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Approved & Live</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">2</div>
+                  <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                    100% ground truth verified
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 26 C 14 28, 26 22, 38 26 C 48 28, 54 14, 62 12" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
             </div>
-          </div>
-          {/* Sparkline Wave SVG */}
-          <div className="w-16 h-8 shrink-0">
-            <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
-              <path
-                d="M2 26 C 14 28, 26 22, 38 26 C 48 28, 54 14, 62 12"
-                stroke="#8b5cf6"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </div>
+          </>
+        ) : role === 'reviewer' ? (
+          <>
+            {/* Reviewer Card 1: Pending Review Queue */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-[#d97706]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Pending Review Queue</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">3</div>
+                  <span className="text-[11px] text-[#d97706] font-medium flex items-center gap-0.5 mt-0.5">
+                    1 high priority item
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 24 C 14 26, 24 16, 36 20 C 46 24, 54 8, 62 10" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Reviewer Card 2: High-Severity Claims */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#fef2f2] text-[#ef4444] flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-[#ef4444]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">High-Severity Flags</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">4</div>
+                  <span className="text-[11px] text-[#dc2626] font-medium flex items-center gap-0.5 mt-0.5">
+                    Requires fact verification
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 28 C 16 30, 26 18, 38 22 C 48 24, 52 10, 62 8" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Reviewer Card 3: Awaiting My Decision */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#eef2ff] text-[#6366f1] flex items-center justify-center shrink-0">
+                  <UserCheck className="w-5 h-5 text-[#6366f1]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Awaiting My Decision</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">2</div>
+                  <span className="text-[11px] text-[#6366f1] font-medium flex items-center gap-0.5 mt-0.5">
+                    Assigned to you
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 26 C 16 28, 28 20, 38 24 C 48 26, 52 14, 62 12" stroke="#6366f1" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Reviewer Card 4: Avg Latency */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+                  <Activity className="w-5 h-5 text-[#10b981]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Avg Review Turnaround</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">
+                    1.4 <span className="text-sm font-normal text-[#9ca3af]">hrs</span>
+                  </div>
+                  <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                    96% SLA compliance
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 26 C 14 28, 26 22, 38 26 C 48 28, 54 14, 62 12" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Admin Card 1: Total Scans */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+                  <FileText className="w-5 h-5 text-[#10b981]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Total Scans</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">124</div>
+                  <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                    <span>↑</span> +12% from last month
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 24 C 14 26, 24 16, 36 20 C 46 24, 54 8, 62 10" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Admin Card 2: Compliance Score */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#ecfdf5] text-[#10b981] flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-[#10b981]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Compliance Score</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">
+                    92 <span className="text-sm font-normal text-[#9ca3af]">/100</span>
+                  </div>
+                  <span className="text-[11px] text-[#16a34a] font-medium flex items-center gap-0.5 mt-0.5">
+                    <span>↑</span> +4% from last month
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 28 C 16 30, 26 18, 38 22 C 48 24, 52 10, 62 8" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Admin Card 3: Active Policies */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-[#d97706]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Active Policies</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">48</div>
+                  <span className="text-[11px] text-[#d97706] font-medium flex items-center gap-0.5 mt-0.5">
+                    100% enforced
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 26 C 16 28, 28 20, 38 24 C 48 26, 52 14, 62 12" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Admin Card 4: Workspace Members */}
+            <div className="bg-white rounded-2xl p-5 border border-[#e7ebe3] shadow-xs flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-xl bg-[#f5f3ff] text-[#8b5cf6] flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-[#8b5cf6]" />
+                </div>
+                <div>
+                  <span className="text-xs text-[#6b7280] font-medium block">Workspace Members</span>
+                  <div className="text-2xl font-bold text-[#111827] mt-0.5">3</div>
+                  <span className="text-[11px] text-[#8b5cf6] font-medium flex items-center gap-0.5 mt-0.5">
+                    3 active • 1 pending
+                  </span>
+                </div>
+              </div>
+              <div className="w-16 h-8 shrink-0">
+                <svg className="w-full h-full" viewBox="0 0 64 32" fill="none">
+                  <path d="M2 26 C 14 28, 26 22, 38 26 C 48 28, 54 14, 62 12" stroke="#8b5cf6" strokeWidth="2.5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* ========================================================= */}
@@ -1130,7 +1342,11 @@ export const DashboardPage: React.FC = () => {
         <div className="lg:col-span-5 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-bold text-[#111827]">
-              Campaigns you're auditing
+              {role === 'creator'
+                ? 'My Content Submissions'
+                : role === 'reviewer'
+                ? 'Submissions Requiring Review'
+                : "Campaigns you're auditing"}
             </h2>
 
             {/* Filter Tabs */}
@@ -1327,141 +1543,306 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* ======================================================= */}
-        {/* COLUMN 3 (3 cols): Compliance Health & AI Insights      */}
+        {/* COLUMN 3 (3 cols): Role-Specific Overview Cards         */}
         {/* ======================================================= */}
         <div className="lg:col-span-3 space-y-4">
-          {/* Card A: Compliance Health (Donut Gauge) */}
-          <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#111827]">
-                Compliance Health
-              </h2>
-              <ChevronRight className="w-4 h-4 text-[#9ca3af] cursor-pointer hover:text-[#111827]" />
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              {/* Circular Donut Gauge */}
-              <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                  {/* Background Track */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    stroke="#f3f4f6"
-                    strokeWidth="10"
-                    fill="none"
-                  />
-                  {/* Compliant Green Arc 86% */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    stroke="#22c55e"
-                    strokeWidth="10"
-                    strokeDasharray={`${0.86 * 238.7} 238.7`}
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  {/* Minor Issues Amber Arc 8% */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    stroke="#f59e0b"
-                    strokeWidth="10"
-                    strokeDasharray={`${0.08 * 238.7} 238.7`}
-                    strokeDashoffset={`-${0.86 * 238.7}`}
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  {/* Major Issues Red Arc 6% */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="38"
-                    stroke="#ef4444"
-                    strokeWidth="10"
-                    strokeDasharray={`${0.06 * 238.7} 238.7`}
-                    strokeDashoffset={`-${0.94 * 238.7}`}
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                </svg>
-                <div className="absolute flex flex-col items-center">
-                  <span className="text-xl font-bold text-[#111827] leading-none">86%</span>
-                  <span className="text-[10px] text-[#6b7280] mt-0.5">Healthy</span>
-                </div>
-              </div>
-
-              {/* Legend */}
-              <div className="space-y-1.5 text-xs">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-1.5 text-[#374151]">
-                    <span className="w-2 h-2 rounded-full bg-[#22c55e]" />
-                    <span>Compliant</span>
+          {role === 'creator' ? (
+            <>
+              {/* Creator Card A: Open Findings & Quick Fixes */}
+              <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-[#ef4444]" />
+                    <h2 className="text-sm font-bold text-[#111827]">
+                      Open Findings (2)
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-[#ef4444] bg-[#fef2f2] px-2 py-0.5 rounded-full">
+                    ACTION NEEDED
                   </span>
-                  <span className="font-semibold text-[#111827]">86%</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-1.5 text-[#374151]">
-                    <span className="w-2 h-2 rounded-full bg-[#f59e0b]" />
-                    <span>Minor issues</span>
+
+                <div className="space-y-2.5 pt-1 text-xs">
+                  <div className="p-2.5 rounded-xl bg-[#fef2f2]/60 border border-[#fee2e2] space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase text-[#dc2626] font-bold">Unverified Claim</span>
+                      <span className="text-[10px] text-[#9ca3af]">DRF-201</span>
+                    </div>
+                    <p className="text-[11px] text-[#374151] font-medium italic">
+                      "Guaranteed 100% loss-free migration"
+                    </p>
+                    <div className="pt-1 border-t border-[#fee2e2]/60 flex items-center justify-between">
+                      <span className="text-[10px] text-[#16a34a] font-medium">✓ Suggested: "99.99% data integrity SLA"</span>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/drafts/new')}
+                        className="text-[10px] text-white bg-[#16a34a] hover:bg-[#15803d] px-2 py-0.5 rounded-md font-bold transition-colors cursor-pointer"
+                      >
+                        Apply Fix
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#fffbeb]/60 border border-[#fef3c7] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase text-[#d97706] font-bold">Missing Disclaimer</span>
+                      <span className="text-[10px] text-[#9ca3af]">DRF-202</span>
+                    </div>
+                    <p className="text-[11px] text-[#4b5563]">
+                      Product Brochure requires FTC disclosure footnote.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Creator Card B: Reviewer Feedback */}
+              <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <FileCheck2 className="w-4 h-4 text-[#16a34a]" />
+                    <h2 className="text-sm font-bold text-[#111827]">
+                      Reviewer Feedback
+                    </h2>
+                  </div>
+                  <span className="text-[11px] text-[#9ca3af]">20m ago</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#f9fafb] border border-[#e5e7eb] space-y-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[#e0e7ff] text-[#4338ca] font-bold text-[10px] flex items-center justify-center">
+                      MV
+                    </div>
+                    <div>
+                      <div className="font-semibold text-[#111827] text-[11px]">Marcus Vance</div>
+                      <div className="text-[10px] text-[#6b7280]">Senior Compliance Reviewer</div>
+                    </div>
+                  </div>
+                  <p className="text-[#4b5563] text-[11px] leading-relaxed">
+                    "Please verify the 99.99% uptime claim with our approved SLA factsheet before resubmitting."
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/approved-facts')}
+                    className="text-[10px] font-semibold text-[#16a34a] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>Browse Approved Facts Catalog</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : role === 'reviewer' ? (
+            <>
+              {/* Reviewer Card A: Review Queue Workstation */}
+              <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-[#d97706]" />
+                    <h2 className="text-sm font-bold text-[#111827]">
+                      Review Workstation
+                    </h2>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold text-[#d97706] bg-[#fef3c7] px-2 py-0.5 rounded-full">
+                    3 IN QUEUE
                   </span>
-                  <span className="font-semibold text-[#111827]">8%</span>
                 </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="flex items-center gap-1.5 text-[#374151]">
-                    <span className="w-2 h-2 rounded-full bg-[#ef4444]" />
-                    <span>Major issues</span>
+
+                <div className="space-y-2 pt-1 text-xs">
+                  <div className="p-3 rounded-xl bg-[#f9fafb] border border-[#e5e7eb] space-y-2">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-[#6b7280]">Assigned to you:</span>
+                      <span className="font-bold text-[#111827]">2 submissions</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-[#6b7280]">High-severity claims:</span>
+                      <span className="font-bold text-[#ef4444]">4 items</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="text-[#6b7280]">Target SLA:</span>
+                      <span className="font-bold text-[#16a34a]">&lt; 2.0 hrs</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/review')}
+                    className="w-full py-2.5 rounded-xl bg-[#1e4a2b] hover:bg-[#15361f] text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Open Review Studio</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Reviewer Card B: Ground Truth Library */}
+              <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <FileCheck2 className="w-4 h-4 text-[#16a34a]" />
+                    <h2 className="text-sm font-bold text-[#111827]">
+                      Ground Truth Library
+                    </h2>
+                  </div>
+                  <ChevronRight
+                    onClick={() => navigate('/approved-facts')}
+                    className="w-4 h-4 text-[#9ca3af] cursor-pointer hover:text-[#111827]"
+                  />
+                </div>
+
+                <div className="space-y-2 pt-1 text-xs">
+                  <div className="p-2.5 rounded-xl bg-[#ecfdf5]/60 border border-[#d1fae5] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-[#065f46] font-bold">FACT BENCHMARK</span>
+                      <span className="text-[10px] text-[#059669]">v2.4 Verified</span>
+                    </div>
+                    <p className="text-[11px] text-[#1f2937] font-semibold">
+                      99.99% Multi-Region SLA
+                    </p>
+                    <span className="text-[10px] text-[#6b7280] block">
+                      Cited across 14 enterprise landing pages
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-[#f9fafb] border border-[#e5e7eb] space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-[#4b5563] font-bold">REGULATORY DISCLAIMER</span>
+                      <span className="text-[10px] text-[#16a34a]">Active</span>
+                    </div>
+                    <p className="text-[11px] text-[#1f2937] font-semibold">
+                      SOC-2 Type II Certified
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Admin Card A: Workspace Members */}
+              <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Users className="w-4 h-4 text-[#16a34a]" />
+                    <h2 className="text-sm font-bold text-[#111827]">
+                      Workspace Members
+                    </h2>
+                  </div>
+                  <span
+                    onClick={() => navigate('/members')}
+                    className="text-[11px] font-semibold text-[#16a34a] hover:underline cursor-pointer"
+                  >
+                    Manage
                   </span>
-                  <span className="font-semibold text-[#111827]">6%</span>
+                </div>
+
+                <div className="space-y-2 pt-1 text-xs">
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-[#f9fafb] border border-[#e5e7eb]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#1e4a2b] text-white text-[10px] font-bold flex items-center justify-center">
+                        ER
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold text-[#111827]">Elena Rostova</div>
+                        <div className="text-[9px] text-[#6b7280]">admin@brandguard.demo</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#ecfdf5] text-[#16a34a] font-bold">
+                      Admin
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-[#f9fafb] border border-[#e5e7eb]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#3b82f6] text-white text-[10px] font-bold flex items-center justify-center">
+                        MV
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold text-[#111827]">Marcus Vance</div>
+                        <div className="text-[9px] text-[#6b7280]">reviewer@brandguard.demo</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#eef2ff] text-[#6366f1] font-bold">
+                      Reviewer
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-[#f9fafb] border border-[#e5e7eb]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-[#10b981] text-white text-[10px] font-bold flex items-center justify-center">
+                        AM
+                      </div>
+                      <div>
+                        <div className="text-[11px] font-semibold text-[#111827]">Alex Morgan</div>
+                        <div className="text-[9px] text-[#6b7280]">creator@brandguard.demo</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#f3f4f6] text-[#374151] font-bold">
+                      Creator
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/members')}
+                    className="w-full mt-1 py-2 rounded-xl bg-[#1e4a2b] hover:bg-[#15361f] text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    Manage Users & Permissions
+                  </button>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Card B: AI Insights */}
-          <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Lightbulb className="w-4 h-4 text-[#f59e0b]" />
-                <h2 className="text-sm font-bold text-[#111827]">
-                  AI Insights
-                </h2>
-              </div>
-              <ChevronRight className="w-4 h-4 text-[#9ca3af] cursor-pointer hover:text-[#111827]" />
-            </div>
-
-            <div className="space-y-2.5 pt-1 text-xs">
-              <div className="flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-[#ecfdf5] text-[#16a34a] flex items-center justify-center shrink-0 mt-0.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#16a34a]" />
+              {/* Admin Card B: Compliance Health & Audit Integrity */}
+              <div className="bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-[#111827]">
+                    Compliance & Integrity
+                  </h2>
+                  <ChevronRight
+                    onClick={() => navigate('/audit')}
+                    className="w-4 h-4 text-[#9ca3af] cursor-pointer hover:text-[#111827]"
+                  />
                 </div>
-                <p className="text-[#4b5563] leading-snug">
-                  Your compliance score improved by 12% this month.
-                </p>
-              </div>
 
-              <div className="flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-[#f5f3ff] text-[#8b5cf6] flex items-center justify-center shrink-0 mt-0.5">
-                  <FileText className="w-3.5 h-3.5 text-[#8b5cf6]" />
-                </div>
-                <p className="text-[#4b5563] leading-snug">
-                  Tone consistency is strongest in social campaigns (94%).
-                </p>
-              </div>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="38" stroke="#f3f4f6" strokeWidth="10" fill="none" />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="38"
+                        stroke="#22c55e"
+                        strokeWidth="10"
+                        strokeDasharray={`${0.86 * 238.7} 238.7`}
+                        strokeLinecap="round"
+                        fill="none"
+                      />
+                    </svg>
+                    <div className="absolute flex flex-col items-center">
+                      <span className="text-base font-bold text-[#111827] leading-none">86%</span>
+                      <span className="text-[9px] text-[#6b7280] mt-0.5">Healthy</span>
+                    </div>
+                  </div>
 
-              <div className="flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-[#fffbeb] text-[#d97706] flex items-center justify-center shrink-0 mt-0.5">
-                  <Shield className="w-3.5 h-3.5 text-[#d97706]" />
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-center gap-1.5 text-[#16a34a] font-medium text-[11px]">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Audit Chain Intact</span>
+                    </div>
+                    <div className="text-[10px] font-mono text-[#6b7280]">
+                      SHA-256 Tamper-Evident
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/audit')}
+                      className="text-[10px] text-[#16a34a] font-semibold hover:underline block pt-1 cursor-pointer"
+                    >
+                      View Immutable Trail →
+                    </button>
+                  </div>
                 </div>
-                <p className="text-[#4b5563] leading-snug">
-                  Most recurring issues are related to unverified claims.
-                </p>
               </div>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -1623,41 +2004,121 @@ export const DashboardPage: React.FC = () => {
 
             {/* 2x2 Action Buttons Grid */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => navigate('/drafts/new')}
-                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
-              >
-                <FileText className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
-                <span className="truncate">Scan new content</span>
-              </button>
+              {role === 'creator' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/drafts/new')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#16a34a] shrink-0" />
+                    <span className="truncate">Scan new content</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => navigate('/drafts/new')}
-                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
-              >
-                <Plus className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
-                <span className="truncate">Create campaign</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/drafts')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                    <span className="truncate">My draft copy</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => navigate('/governance')}
-                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
-              >
-                <BarChart3 className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
-                <span className="truncate">View reports</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/analysis')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#ef4444] shrink-0" />
+                    <span className="truncate">View findings</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => navigate('/settings')}
-                className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
-              >
-                <Users className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
-                <span className="truncate">Manage team</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/approved-facts')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#16a34a] shrink-0" />
+                    <span className="truncate">Approved facts</span>
+                  </button>
+                </>
+              ) : role === 'reviewer' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/review')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-[#d97706] shrink-0" />
+                    <span className="truncate">Review queue</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/review')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <AlertTriangle className="w-3.5 h-3.5 text-[#ef4444] shrink-0" />
+                    <span className="truncate">High-sev claims</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/approved-facts')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <FileCheck2 className="w-3.5 h-3.5 text-[#16a34a] shrink-0" />
+                    <span className="truncate">Evidence library</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/audit')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <Activity className="w-3.5 h-3.5 text-[#6366f1] shrink-0" />
+                    <span className="truncate">Audit log</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/members')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <Users className="w-3.5 h-3.5 text-[#8b5cf6] shrink-0" />
+                    <span className="truncate">Invite members</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/policies')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-[#16a34a] shrink-0" />
+                    <span className="truncate">Brand policies</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/approved-facts')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                    <span className="truncate">Add fact</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/governance')}
+                    className="p-2.5 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] hover:bg-[#f3f4f6] text-[#374151] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <BarChart3 className="w-3.5 h-3.5 text-[#6b7280] shrink-0" />
+                    <span className="truncate">Governance</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

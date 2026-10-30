@@ -1,6 +1,6 @@
 import { unauthenticated, conflict, accountLinkingRequired } from '../errors';
 import { T } from '../repositories/common';
-import { Membership, User, Workspace } from '../models';
+import { Membership, User, Workspace, Invitation } from '../models';
 import { dummyHash, hashPassword, verifyPassword } from '../security/password';
 import { signAccessToken, verifyAccessToken } from '../security/jwt';
 import { changePasswordBody, loginBody } from '../validation/schemas';
@@ -18,6 +18,8 @@ export interface UserProfileResponse {
   providers?: Array<{ provider: string; providerId: string; email?: string; linkedAt: Date }>;
   createdAt?: Date;
   lastLoginAt?: Date;
+  workspaces?: Array<{ workspaceId: string; name: string; brandName: string; role: string }>;
+  activeRole?: string;
 }
 
 export interface LoginResult {
@@ -29,10 +31,34 @@ export interface LoginResult {
 
 /**
  * Ensures a user is assigned to at least one active workspace upon registration.
+ * Honors pending invitations matching user's email first; falls back to default workspace with 'creator' role.
  */
-async function ensureDefaultWorkspaceMembership(userId: string): Promise<void> {
+async function ensureDefaultWorkspaceMembership(userId: string, email?: string): Promise<void> {
   const existing = await Membership.findOne({ userId, status: 'active' });
   if (existing) return;
+
+  if (email) {
+    const invites = await Invitation.find({
+      email: email.toLowerCase().trim(),
+      status: 'pending',
+      expiresAt: T({ $gt: new Date() }),
+    });
+
+    if (invites.length > 0) {
+      for (const inv of invites) {
+        await Membership.create({
+          userId,
+          workspaceId: inv.workspaceId,
+          role: inv.role,
+          status: 'active',
+          addedBy: inv.invitedBy,
+        });
+        inv.status = 'accepted';
+        await inv.save();
+      }
+      return;
+    }
+  }
 
   let workspace = await Workspace.findOne({ status: 'active' });
   if (!workspace) {
@@ -88,8 +114,9 @@ export async function register(
     lastLoginAt: new Date(),
   });
 
-  await ensureDefaultWorkspaceMembership(String(user._id));
+  await ensureDefaultWorkspaceMembership(String(user._id), user.email);
 
+  const workspaces = await listMyWorkspaces(String(user._id));
   const { token, expiresIn } = signAccessToken({ sub: String(user._id), tv: user.tokenVersion });
   return {
     token,
@@ -105,6 +132,8 @@ export async function register(
       providers: user.providers,
       createdAt: (user as any).createdAt,
       lastLoginAt: user.lastLoginAt,
+      workspaces,
+      activeRole: workspaces[0]?.role || 'creator',
     },
   };
 }
@@ -121,6 +150,7 @@ export async function login(emailInput: unknown, passwordInput: unknown): Promis
   user.lastLoginAt = new Date();
   await user.save();
 
+  const workspaces = await listMyWorkspaces(String(user._id));
   const { token, expiresIn } = signAccessToken({ sub: String(user._id), tv: user.tokenVersion });
   return {
     token,
@@ -136,6 +166,8 @@ export async function login(emailInput: unknown, passwordInput: unknown): Promis
       providers: user.providers,
       createdAt: (user as any).createdAt,
       lastLoginAt: user.lastLoginAt,
+      workspaces,
+      activeRole: workspaces[0]?.role || 'creator',
     },
   };
 }
@@ -165,6 +197,7 @@ export async function authenticateGoogle(
     }
     await user.save();
 
+    const workspaces = await listMyWorkspaces(String(user._id));
     const { token, expiresIn } = signAccessToken({ sub: String(user._id), tv: user.tokenVersion });
     return {
       token,
@@ -180,6 +213,8 @@ export async function authenticateGoogle(
         providers: user.providers,
         createdAt: (user as any).createdAt,
         lastLoginAt: user.lastLoginAt,
+        workspaces,
+        activeRole: workspaces[0]?.role || 'creator',
       },
     };
   }
@@ -227,6 +262,7 @@ export async function authenticateGoogle(
     });
     await existingByEmail.save();
 
+    const workspaces = await listMyWorkspaces(String(existingByEmail._id));
     const { token, expiresIn } = signAccessToken({
       sub: String(existingByEmail._id),
       tv: existingByEmail.tokenVersion,
@@ -245,6 +281,8 @@ export async function authenticateGoogle(
         providers: existingByEmail.providers,
         createdAt: (existingByEmail as any).createdAt,
         lastLoginAt: existingByEmail.lastLoginAt,
+        workspaces,
+        activeRole: workspaces[0]?.role || 'creator',
       },
     };
   }
@@ -270,8 +308,9 @@ export async function authenticateGoogle(
     lastLoginAt: new Date(),
   });
 
-  await ensureDefaultWorkspaceMembership(String(newUser._id));
+  await ensureDefaultWorkspaceMembership(String(newUser._id), newUser.email);
 
+  const workspaces = await listMyWorkspaces(String(newUser._id));
   const { token, expiresIn } = signAccessToken({ sub: String(newUser._id), tv: newUser.tokenVersion });
   return {
     token,
@@ -288,6 +327,8 @@ export async function authenticateGoogle(
       providers: newUser.providers,
       createdAt: (newUser as any).createdAt,
       lastLoginAt: newUser.lastLoginAt,
+      workspaces,
+      activeRole: workspaces[0]?.role || 'creator',
     },
   };
 }
@@ -314,6 +355,7 @@ export async function authenticateMicrosoft(
     user.lastLoginAt = new Date();
     await user.save();
 
+    const workspaces = await listMyWorkspaces(String(user._id));
     const { token, expiresIn } = signAccessToken({ sub: String(user._id), tv: user.tokenVersion });
     return {
       token,
@@ -329,6 +371,8 @@ export async function authenticateMicrosoft(
         providers: user.providers,
         createdAt: (user as any).createdAt,
         lastLoginAt: user.lastLoginAt,
+        workspaces,
+        activeRole: workspaces[0]?.role || 'creator',
       },
     };
   }
@@ -372,6 +416,7 @@ export async function authenticateMicrosoft(
     });
     await existingByEmail.save();
 
+    const workspaces = await listMyWorkspaces(String(existingByEmail._id));
     const { token, expiresIn } = signAccessToken({
       sub: String(existingByEmail._id),
       tv: existingByEmail.tokenVersion,
@@ -390,6 +435,8 @@ export async function authenticateMicrosoft(
         providers: existingByEmail.providers,
         createdAt: (existingByEmail as any).createdAt,
         lastLoginAt: existingByEmail.lastLoginAt,
+        workspaces,
+        activeRole: workspaces[0]?.role || 'creator',
       },
     };
   }
@@ -415,8 +462,9 @@ export async function authenticateMicrosoft(
     lastLoginAt: new Date(),
   });
 
-  await ensureDefaultWorkspaceMembership(String(newUser._id));
+  await ensureDefaultWorkspaceMembership(String(newUser._id), newUser.email);
 
+  const workspaces = await listMyWorkspaces(String(newUser._id));
   const { token, expiresIn } = signAccessToken({ sub: String(newUser._id), tv: newUser.tokenVersion });
   return {
     token,
@@ -433,6 +481,8 @@ export async function authenticateMicrosoft(
       providers: newUser.providers,
       createdAt: (newUser as any).createdAt,
       lastLoginAt: newUser.lastLoginAt,
+      workspaces,
+      activeRole: workspaces[0]?.role || 'creator',
     },
   };
 }
@@ -447,6 +497,8 @@ export async function getCurrentUserProfile(userId: string): Promise<UserProfile
     throw unauthenticated('User not found or disabled');
   }
 
+  const workspaces = await listMyWorkspaces(userId);
+
   return {
     id: String(user._id),
     email: user.email,
@@ -458,6 +510,8 @@ export async function getCurrentUserProfile(userId: string): Promise<UserProfile
     providers: user.providers,
     createdAt: (user as any).createdAt,
     lastLoginAt: user.lastLoginAt,
+    workspaces,
+    activeRole: workspaces[0]?.role || 'creator',
   };
 }
 

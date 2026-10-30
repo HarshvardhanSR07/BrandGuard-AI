@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -7,24 +7,31 @@ import {
   BookOpen,
   FileCheck2,
   CheckCheck,
-  Activity,
   Fingerprint,
+  Activity,
   Settings2,
-  Plus,
   ChevronDown,
-  Check,
-  CircleHelp,
   ChevronRight,
-  LogOut,
+  Plus,
   PanelLeftClose,
   PanelLeftOpen,
+  Check,
+  CircleHelp,
+  LogOut,
   LockKeyhole,
+  Users,
+  ShieldCheck,
+  FolderGit2,
+  History,
+  BarChart3,
+  FileEdit,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspace } from '../../hooks/useWorkspace';
 import { BrandGuardLogo } from '../ui/BrandGuardLogo';
 
-export const NAV_WORKFLOW_GROUPS = [
+// Navigation groups for Creator
+export const CREATOR_NAV_GROUPS = [
   {
     label: 'OVERVIEW',
     items: [
@@ -34,37 +41,63 @@ export const NAV_WORKFLOW_GROUPS = [
   {
     label: 'CONTENT WORKFLOW',
     items: [
-      { name: 'Content Review', path: '/drafts', icon: FileText, badge: '6' },
-      { name: 'Findings & Analysis', path: '/analysis', icon: Sparkles, badge: '4' },
+      { name: 'My Drafts', path: '/drafts', icon: FolderGit2, badge: '3' },
+      { name: 'Content Review', path: '/drafts/new', icon: FileEdit },
+      { name: 'Findings & Analysis', path: '/analysis', icon: Sparkles, badge: '2' },
+      { name: 'Review History', path: '/drafts', icon: History },
+    ],
+  },
+];
+
+// Navigation groups for Reviewer
+export const REVIEWER_NAV_GROUPS = [
+  {
+    label: 'OVERVIEW',
+    items: [
+      { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'GROUND TRUTH',
+    label: 'VERIFICATION & DECISION',
     items: [
+      { name: 'Review Queue', path: '/review', icon: CheckCheck, badge: '3' },
+      { name: 'Findings & Analysis', path: '/analysis', icon: Sparkles },
+      { name: 'Evidence Library', path: '/approved-facts', icon: FileCheck2 },
+      { name: 'Review History', path: '/audit', icon: History },
+    ],
+  },
+];
+
+// Navigation groups for Admin
+export const ADMIN_NAV_GROUPS = [
+  {
+    label: 'OVERVIEW',
+    items: [
+      { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'BRAND & GOVERNANCE',
+    items: [
+      { name: 'Brand Profile', path: '/dashboard', icon: ShieldCheck },
+      { name: 'Content Governance', path: '/governance', icon: Activity },
       { name: 'Brand Policies', path: '/policies', icon: BookOpen },
       { name: 'Approved Facts', path: '/approved-facts', icon: FileCheck2 },
     ],
   },
   {
-    label: 'VERIFICATION & AUDIT',
+    label: 'ADMINISTRATION',
     items: [
-      { name: 'Review Queue', path: '/review', icon: CheckCheck, badge: '3' },
+      { name: 'Users & Roles', path: '/members', icon: Users, badge: 'Admin' },
       { name: 'Audit Trail', path: '/audit', icon: Fingerprint },
-    ],
-  },
-  {
-    label: 'INTELLIGENCE',
-    items: [
-      { name: 'Governance Insights', path: '/governance', icon: Activity },
-    ],
-  },
-  {
-    label: 'SYSTEM',
-    items: [
-      { name: 'Settings & Workspaces', path: '/settings', icon: Settings2 },
+      { name: 'Governance Analytics', path: '/governance', icon: BarChart3 },
+      { name: 'Workspace Settings', path: '/settings', icon: Settings2 },
     ],
   },
 ];
+
+// Default fallback export for legacy references
+export const NAV_WORKFLOW_GROUPS = ADMIN_NAV_GROUPS;
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -74,10 +107,17 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role } = useAuth();
+  const { user, role, logout } = useAuth();
   const { workspace, workspaces, setWorkspace } = useWorkspace();
 
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+
+  // Role-based navigation selection
+  const navGroups = useMemo(() => {
+    if (role === 'reviewer') return REVIEWER_NAV_GROUPS;
+    if (role === 'admin') return ADMIN_NAV_GROUPS;
+    return CREATOR_NAV_GROUPS;
+  }, [role]);
 
   return (
     <aside
@@ -87,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
       }`}
     >
       <div className="px-3 flex-1 flex flex-col min-h-0">
-        {/* Brand Lockup & Collapse Trigger (Zero Overlap in Collapsed & Expanded Modes) */}
+        {/* Brand Lockup & Collapse Trigger */}
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-2 mb-4">
             <div
@@ -138,21 +178,51 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
           </div>
         )}
 
-        {/* Primary Action Button: New Content Review */}
+        {/* Primary Action Button tailored to role */}
         <div className="mb-4">
-          <button
-            type="button"
-            onClick={() => navigate('/drafts/new')}
-            className={`w-full rounded-xl bg-[#295d36] hover:bg-[#1f4729] text-white font-semibold flex items-center shadow-2xs transition-all cursor-pointer ${
-              isCollapsed
-                ? 'h-9 justify-center p-0'
-                : 'h-9 px-3.5 justify-center gap-2 text-xs'
-            }`}
-            title="Start New Content Review"
-          >
-            <Plus className="w-4 h-4 shrink-0" />
-            {!isCollapsed && <span>New Content Review</span>}
-          </button>
+          {role === 'creator' ? (
+            <button
+              type="button"
+              onClick={() => navigate('/drafts/new')}
+              className={`w-full rounded-xl bg-[#295d36] hover:bg-[#1f4729] text-white font-semibold flex items-center shadow-2xs transition-all cursor-pointer ${
+                isCollapsed
+                  ? 'h-9 justify-center p-0'
+                  : 'h-9 px-3.5 justify-center gap-2 text-xs'
+              }`}
+              title="Start New Content Review"
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>New Content Review</span>}
+            </button>
+          ) : role === 'reviewer' ? (
+            <button
+              type="button"
+              onClick={() => navigate('/review')}
+              className={`w-full rounded-xl bg-[#1e4a2b] hover:bg-[#14341e] text-white font-semibold flex items-center shadow-2xs transition-all cursor-pointer ${
+                isCollapsed
+                  ? 'h-9 justify-center p-0'
+                  : 'h-9 px-3.5 justify-center gap-2 text-xs'
+              }`}
+              title="Open Pending Review Queue"
+            >
+              <CheckCheck className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Open Review Queue</span>}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate('/members')}
+              className={`w-full rounded-xl bg-[#1e4a2b] hover:bg-[#14341e] text-white font-semibold flex items-center shadow-2xs transition-all cursor-pointer ${
+                isCollapsed
+                  ? 'h-9 justify-center p-0'
+                  : 'h-9 px-3.5 justify-center gap-2 text-xs'
+              }`}
+              title="Manage Workspace Users & Roles"
+            >
+              <Users className="w-4 h-4 shrink-0" />
+              {!isCollapsed && <span>Manage Users & Roles</span>}
+            </button>
+          )}
         </div>
 
         {/* Workspace Selector (Expanded view) */}
@@ -161,17 +231,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
             <button
               type="button"
               onClick={() => setWorkspaceOpen(!workspaceOpen)}
-              className="flex items-center justify-between w-full p-2 rounded-xl border border-[#e7ebe3] bg-[#fbfcfa] hover:bg-white hover:border-[#dce2d7] transition-all text-left text-xs"
+              className="flex items-center justify-between w-full p-2 rounded-xl border border-[#e7ebe3] bg-[#fbfcfa] hover:bg-white hover:border-[#dce2d7] transition-all text-left text-xs cursor-pointer"
               aria-expanded={workspaceOpen}
               aria-haspopup="true"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="w-6 h-6 rounded-lg bg-[#e4efdd] text-[#295d36] font-bold flex items-center justify-center shrink-0 text-xs">
-                  {workspace?.name?.[0] || 'W'}
+                  {workspace?.name?.[0] || 'A'}
                 </span>
                 <div className="flex flex-col min-w-0">
                   <span className="font-semibold text-[#202820] truncate text-[11px]">
-                    {workspace?.name || 'Workspace'}
+                    {workspace?.name || 'Acme Cloud Platform'}
                   </span>
                   <span className="text-[9px] text-[#858d83]">{workspace?.plan || 'Enterprise'}</span>
                 </div>
@@ -189,7 +259,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
                       setWorkspace(ws.id);
                       setWorkspaceOpen(false);
                     }}
-                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs hover:bg-[#f7f8f5] text-[#202820] transition-colors"
+                    className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs hover:bg-[#f7f8f5] text-[#202820] transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-2 truncate">
                       <span className="w-5 h-5 rounded bg-[#e4efdd] text-[#295d36] font-semibold text-[10px] flex items-center justify-center shrink-0">
@@ -211,22 +281,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
 
         {/* Scrollable Navigation Groups */}
         <nav className="flex-1 overflow-y-auto space-y-3.5 pr-0.5 custom-scrollbar">
-          {NAV_WORKFLOW_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.label} className="space-y-1">
               {!isCollapsed && (
                 <div className="px-2 text-[10px] font-mono tracking-wider text-[#98a094] uppercase font-medium truncate">
                   {group.label}
                 </div>
               )}
+
               <div className="space-y-0.5">
                 {group.items.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
+                  const isActive = location.pathname === item.path;
+
                   return (
                     <NavLink
                       key={item.name}
                       to={item.path}
-                      title={isCollapsed ? item.name : undefined}
                       className={`group relative flex items-center rounded-xl text-xs font-medium transition-all ${
                         isCollapsed
                           ? 'h-9 w-9 mx-auto justify-center'
@@ -242,9 +313,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
                         {!isCollapsed && <span className="truncate">{item.name}</span>}
                       </div>
 
-                      {!isCollapsed && item.badge && (
+                      {!isCollapsed && (item as any).badge && (
                         <span className="px-1.5 py-0.5 rounded-md bg-[#d9ebd1] text-[#315f3a] text-[10px] font-bold shrink-0">
-                          {item.badge}
+                          {(item as any).badge}
                         </span>
                       )}
 
@@ -252,9 +323,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
                       {isCollapsed && (
                         <div className="absolute left-[calc(100%+8px)] top-1/2 -translate-y-1/2 z-50 hidden group-hover:flex items-center px-2 py-1 rounded-md bg-[#12161c] text-white text-xs font-normal whitespace-nowrap shadow-lg pointer-events-none animate-in fade-in duration-100">
                           {item.name}
-                          {item.badge && (
+                          {(item as any).badge && (
                             <span className="ml-1.5 px-1 py-0.2 rounded bg-white/20 text-[10px]">
-                              {item.badge}
+                              {(item as any).badge}
                             </span>
                           )}
                         </div>
@@ -268,7 +339,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
         </nav>
       </div>
 
-      {/* Sidebar Footer with Help and User Profile */}
+      {/* Sidebar Footer with Guidance and User Profile */}
       <div className="px-3 pt-3 border-t border-[#e7ebe3] space-y-2">
         {!isCollapsed && (
           <div
@@ -291,13 +362,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
         {/* User Card */}
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-7 h-7 rounded-full bg-[#3f7449] text-white font-bold flex items-center justify-center text-xs shrink-0">
-              {role === 'reviewer' ? 'SR' : role === 'creator' ? 'AM' : 'AD'}
+            <span className="w-7 h-7 rounded-full bg-[#1e4a2b] text-white font-bold flex items-center justify-center text-xs shrink-0 overflow-hidden">
+              {user?.avatarUrl ? (
+                <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                user?.initials || (role === 'reviewer' ? 'MV' : role === 'admin' ? 'ER' : 'AM')
+              )}
             </span>
             {!isCollapsed && (
               <div className="flex flex-col min-w-0">
                 <span className="text-xs font-semibold text-[#202820] truncate">
-                  {role === 'reviewer' ? 'Sam Rivera' : role === 'creator' ? 'Alex Morgan' : 'Admin Director'}
+                  {user?.name || (role === 'reviewer' ? 'Marcus Vance' : role === 'admin' ? 'Elena Rostova' : 'Alex Morgan')}
                 </span>
                 <span className="text-[10px] text-[#858d83] capitalize">{role}</span>
               </div>
@@ -306,8 +381,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
           {!isCollapsed && (
             <button
               type="button"
-              onClick={() => navigate('/login')}
-              className="text-[#858d83] hover:text-[#b8473c] p-1 transition-colors"
+              onClick={async () => {
+                await logout();
+                navigate('/login');
+              }}
+              className="text-[#858d83] hover:text-[#b8473c] p-1 transition-colors cursor-pointer"
               title="Sign out"
             >
               <LogOut className="w-3.5 h-3.5" />

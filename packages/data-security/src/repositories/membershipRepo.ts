@@ -1,6 +1,7 @@
+import { randomBytes } from 'crypto';
 import { conflict, notFound } from '../errors';
 import { appendAuditEvent } from '../audit/auditLog';
-import { Membership, User } from '../models';
+import { Membership, User, Invitation } from '../models';
 import { assertCtx, type AccessContext } from '../security/context';
 import { assertCan } from '../security/permissions';
 import { assertObjectId } from '../validation/ids';
@@ -88,4 +89,85 @@ export async function removeMember(ctx: AccessContext, userId: string) {
     targetType: 'user', targetId: userId, meta: { role: current.role },
   });
   return { userId, removed: true };
+}
+
+/** Admin only. Create or refresh a pending invitation for an email address. */
+export async function inviteMember(ctx: AccessContext, input: unknown) {
+  assertCtx(ctx);
+  assertCan(ctx.role, 'membership:manage');
+  const body = addMemberBody.parse(input);
+  const email = body.email.toLowerCase().trim();
+
+  // If user already exists and is active member, reject
+  const existingUser = await User.findOne({ email }).select('_id status').lean();
+  if (existingUser) {
+    const existingMem = await Membership.findOne({ userId: existingUser._id, workspaceId: ctx.workspaceId }).lean();
+    if (existingMem?.status === 'active') throw conflict('User is already an active member of this workspace');
+    // If user exists and is not member, add them directly
+    if (existingMem) {
+      await Membership.updateOne({ _id: existingMem._id }, { $set: { status: 'active', role: body.role, addedBy: ctx.userId } });
+    } else {
+      await Membership.create({ userId: existingUser._id, workspaceId: ctx.workspaceId, role: body.role, status: 'active', addedBy: ctx.userId });
+    }
+    await appendAuditEvent({
+      workspaceId: ctx.workspaceId, actorId: ctx.userId, action: 'membership.added',
+      targetType: 'user', targetId: String(existingUser._id), meta: { role: body.role, email },
+    });
+    return { userId: String(existingUser._id), email, role: body.role, status: 'active' as const };
+  }
+
+  // User does not exist yet: create a 7-day pending invitation
+  const token = randomBytes(24).toString('hex');
+  const expiresAt = new Date(Date.now() + 7 * 86_400_000);
+  const invite = await Invitation.findOneAndUpdate(
+    { workspaceId: ctx.workspaceId, email },
+    { $set: { role: body.role, invitedBy: ctx.userId, status: 'pending', token, expiresAt } },
+    { upsert: true, new: true }
+  );
+
+  await appendAuditEvent({
+    workspaceId: ctx.workspaceId, actorId: ctx.userId, action: 'invitation.created',
+    targetType: 'invitation', targetId: String(invite._id), meta: { email, role: body.role },
+  });
+
+  return { invitationId: String(invite._id), email, role: body.role, status: 'pending' as const, expiresAt };
+}
+
+/** Admin only. List active pending invitations. */
+export async function listInvitations(ctx: AccessContext) {
+  assertCtx(ctx);
+  assertCan(ctx.role, 'membership:manage');
+  const invites = await Invitation.find({
+    workspaceId: ctx.workspaceId,
+    status: 'pending',
+    expiresAt: T({ $gt: new Date() }),
+  }).lean();
+
+  return invites.map((inv) => ({
+    invitationId: String(inv._id),
+    email: inv.email,
+    role: inv.role,
+    status: inv.status,
+    expiresAt: inv.expiresAt,
+    createdAt: (inv as any).createdAt,
+  }));
+}
+
+/** Admin only. Revoke a pending invitation. */
+export async function revokeInvitation(ctx: AccessContext, invitationId: string) {
+  assertCtx(ctx);
+  assertCan(ctx.role, 'membership:manage');
+  assertObjectId(invitationId, 'invitationId');
+  const invite = await Invitation.findOneAndUpdate(
+    { _id: invitationId, workspaceId: ctx.workspaceId, status: 'pending' },
+    { $set: { status: 'revoked' } },
+    { new: true }
+  );
+  if (!invite) throw notFound('Invitation');
+
+  await appendAuditEvent({
+    workspaceId: ctx.workspaceId, actorId: ctx.userId, action: 'invitation.revoked',
+    targetType: 'invitation', targetId: invitationId, meta: { email: invite.email },
+  });
+  return { invitationId, revoked: true };
 }

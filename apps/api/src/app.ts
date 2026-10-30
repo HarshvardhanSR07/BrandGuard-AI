@@ -17,6 +17,7 @@ import {
   analytics,
   policies,
   facts,
+  members,
   listAuditEvents,
   verifyChain,
 } from '@brandguard/data-security';
@@ -68,9 +69,63 @@ export const createApp = (): Application => {
     res.json(await policies.listActive(getCtx(req)));
   }));
 
+  app.post('/api/policies', authenticate(), workspaceContext(), requirePermission('policy:manage'), asyncHandler(async (req, res) => {
+    res.status(201).json(await policies.createVersion(getCtx(req), req.body));
+  }));
+
+  app.delete('/api/policies/:key', authenticate(), workspaceContext(), requirePermission('policy:manage'), asyncHandler(async (req, res) => {
+    res.json(await policies.retire(getCtx(req), req.params.key));
+  }));
+
   app.get('/api/facts/active', authenticate(), workspaceContext(), asyncHandler(async (req, res) => {
     res.json(await facts.listActive(getCtx(req)));
   }));
+
+  app.post('/api/facts', authenticate(), workspaceContext(), requirePermission('fact:manage'), asyncHandler(async (req, res) => {
+    res.status(201).json(await facts.createVersion(getCtx(req), req.body));
+  }));
+
+  app.delete('/api/facts/:key', authenticate(), workspaceContext(), requirePermission('fact:manage'), asyncHandler(async (req, res) => {
+    res.json(await facts.retire(getCtx(req), req.params.key));
+  }));
+
+  // Workspace Members & Roles Management (Admin only)
+  const listMembersHandler = asyncHandler(async (req, res) => {
+    const mems = await members.listMembers(getCtx(req));
+    const invites = await members.listInvitations(getCtx(req));
+    res.json({ members: mems, invitations: invites });
+  });
+
+  const inviteMemberHandler = asyncHandler(async (req, res) => {
+    res.status(201).json(await members.inviteMember(getCtx(req), req.body));
+  });
+
+  const changeRoleHandler = asyncHandler(async (req, res) => {
+    res.json(await members.changeRole(getCtx(req), req.params.userId, req.body));
+  });
+
+  const removeMemberHandler = asyncHandler(async (req, res) => {
+    res.json(await members.removeMember(getCtx(req), req.params.userId));
+  });
+
+  const revokeInvitationHandler = asyncHandler(async (req, res) => {
+    res.json(await members.revokeInvitation(getCtx(req), req.params.invitationId));
+  });
+
+  app.get('/api/workspaces/:workspaceId/members', authenticate(), workspaceContext(), requirePermission('membership:manage'), listMembersHandler);
+  app.get('/api/members', authenticate(), workspaceContext(), requirePermission('membership:manage'), listMembersHandler);
+
+  app.post('/api/workspaces/:workspaceId/members', authenticate(), workspaceContext(), requirePermission('membership:manage'), inviteMemberHandler);
+  app.post('/api/members', authenticate(), workspaceContext(), requirePermission('membership:manage'), inviteMemberHandler);
+
+  app.patch('/api/workspaces/:workspaceId/members/:userId', authenticate(), workspaceContext(), requirePermission('membership:manage'), changeRoleHandler);
+  app.patch('/api/members/:userId', authenticate(), workspaceContext(), requirePermission('membership:manage'), changeRoleHandler);
+
+  app.delete('/api/workspaces/:workspaceId/members/:userId', authenticate(), workspaceContext(), requirePermission('membership:manage'), removeMemberHandler);
+  app.delete('/api/members/:userId', authenticate(), workspaceContext(), requirePermission('membership:manage'), removeMemberHandler);
+
+  app.delete('/api/workspaces/:workspaceId/invitations/:invitationId', authenticate(), workspaceContext(), requirePermission('membership:manage'), revokeInvitationHandler);
+  app.delete('/api/invitations/:invitationId', authenticate(), workspaceContext(), requirePermission('membership:manage'), revokeInvitationHandler);
 
   // Content Drafts
   app.get('/api/content', authenticate(), workspaceContext(), asyncHandler(async (req, res) => {
@@ -289,7 +344,7 @@ export const createApp = (): Application => {
   }));
 
   app.post('/api/lax/chat', asyncHandler(async (req, res) => {
-    const { message, userId, userName, role } = req.body;
+    const { message, userId, userName, role, workspaceId } = req.body;
     if (!message) {
       return res.status(400).json({ error: { message: 'message is required' } });
     }
@@ -299,6 +354,7 @@ export const createApp = (): Application => {
       userId,
       name: userName,
       role,
+      workspaceId,
     });
 
     res.json(result);

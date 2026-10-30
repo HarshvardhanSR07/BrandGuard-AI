@@ -366,7 +366,7 @@ export const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     api.getAnalyticsSummary()
-      .then((data) => {
+      .then((data: any) => {
         if (data && data.recurring) {
           setAnalytics(data);
         }

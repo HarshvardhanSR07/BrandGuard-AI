@@ -136,7 +136,7 @@ export const AnalysisPage: React.FC = () => {
       setIsLoading(true);
       draftsApi
         .get(draftIdParam)
-        .then((draft) => {
+        .then((draft: any) => {
           if (draft) setDraftTitle(draft.title);
         })
         .catch(() => {});

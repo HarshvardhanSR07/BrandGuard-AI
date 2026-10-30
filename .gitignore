@@ -45,7 +45,8 @@ build_perfect_mascot.py
 fix_mascot_sprites.py
 
 # Uploads and temporary data
-uploads/
+/uploads/
+/apps/api/src/uploads/
 tmp/
 temp/
 .mongo-data/
@@ -71,8 +72,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -84,6 +85,12 @@ wheels/
 venv/
 ENV/
 .venv/
+
+# Do not ignore web application source files
+!apps/web/src/lib/
+!apps/web/src/lib/**
+!apps/web/src/features/uploads/
+!apps/web/src/features/uploads/**
 
 # Editor / OS
 .DS_Store

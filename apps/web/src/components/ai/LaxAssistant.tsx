@@ -112,7 +112,7 @@ export const LaxAssistant: React.FC = () => {
   // Fetch Cognee memory status on mount and when user changes
   useEffect(() => {
     api.getLaxMemory(user?.id)
-      .then((data) => {
+      .then((data: any) => {
         if (data && data.stats) {
           setMemoryStats({
             totalNodes: data.stats.totalNodes || 14,

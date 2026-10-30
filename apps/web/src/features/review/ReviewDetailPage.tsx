@@ -74,7 +74,7 @@ export const ReviewDetailPage: React.FC = () => {
     if (id) {
       // Fetch draft details
       draftsApi.get(id)
-        .then((draft) => {
+        .then((draft: any) => {
           if (draft) {
             setDraftTitle(draft.title);
             if (draft.text) setDraftText(draft.text);

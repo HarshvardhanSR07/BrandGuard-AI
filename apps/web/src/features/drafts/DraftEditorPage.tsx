@@ -306,7 +306,7 @@ export const DraftEditorPage: React.FC = () => {
     if (draftIdParam) {
       draftsApi
         .get(draftIdParam)
-        .then((data) => {
+        .then((data: any) => {
           if (data) {
             setTitle(data.title || 'Untitled Draft');
             if (data.text) {

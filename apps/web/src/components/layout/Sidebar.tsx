@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspace } from '../../hooks/useWorkspace';
+import { BrandGuardLogo } from '../ui/BrandGuardLogo';
 
 export const NAV_WORKFLOW_GROUPS = [
   {
@@ -86,21 +87,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
       }`}
     >
       <div className="px-3 flex-1 flex flex-col min-h-0">
-        {/* Brand Lockup & Collapse Trigger */}
-        <div className="flex items-center justify-between px-1 mb-4">
-          <div
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2.5 cursor-pointer group min-w-0"
-            title="BrandGuard AI Home"
-          >
-            <div className="w-8 h-8 rounded-xl bg-[#295d36] border border-[#1e4628] flex items-center justify-center shadow-xs shrink-0 p-1.5 transition-transform group-hover:scale-105">
-              <img
-                src="/brandguard-emblem-white.png"
-                alt="BrandGuard Emblem"
-                className="w-full h-full object-contain filter drop-shadow-2xs"
-              />
+        {/* Brand Lockup & Collapse Trigger (Zero Overlap in Collapsed & Expanded Modes) */}
+        {isCollapsed ? (
+          <div className="flex flex-col items-center gap-2 mb-4">
+            <div
+              onClick={() => navigate('/dashboard')}
+              className="cursor-pointer group p-0.5 rounded-xl hover:bg-[#f1f4ee] transition-all flex items-center justify-center"
+              title="BrandGuard AI Home"
+            >
+              <BrandGuardLogo size="sm" />
             </div>
-            {!isCollapsed && (
+
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-[#6a7468] hover:text-[#202820] hover:bg-[#f1f4ee] transition-colors cursor-pointer"
+              title="Expand sidebar (Ctrl+B)"
+              aria-label="Expand sidebar"
+            >
+              <PanelLeftOpen className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between px-1 mb-4">
+            <div
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2.5 cursor-pointer group min-w-0"
+              title="BrandGuard AI Home"
+            >
+              <BrandGuardLogo size="md" />
               <div className="flex flex-col min-w-0 animate-in fade-in duration-150">
                 <span className="font-playfair font-bold text-sm tracking-tight text-[#202820] leading-tight truncate">
                   BrandGuard <span className="text-[#295d36] font-extrabold">AI</span>
@@ -109,23 +124,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggleCollapse 
                   Compliance Console
                 </span>
               </div>
-            )}
-          </div>
+            </div>
 
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="p-1 rounded-lg text-[#858d83] hover:text-[#202820] hover:bg-[#f1f4ee] transition-colors shrink-0"
-            title={isCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
-            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {isCollapsed ? (
-              <PanelLeftOpen className="w-4 h-4" />
-            ) : (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="p-1.5 rounded-lg text-[#858d83] hover:text-[#202820] hover:bg-[#f1f4ee] transition-colors shrink-0 cursor-pointer"
+              title="Collapse sidebar (Ctrl+B)"
+              aria-label="Collapse sidebar"
+            >
               <PanelLeftClose className="w-4 h-4" />
-            )}
-          </button>
-        </div>
+            </button>
+          </div>
+        )}
 
         {/* Primary Action Button: New Content Review */}
         <div className="mb-4">

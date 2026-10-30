@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useWorkspace } from '../../hooks/useWorkspace';
+import { BrandGuardLogo } from '../ui/BrandGuardLogo';
 
 interface MobileNavDrawerProps {
   isOpen: boolean;
@@ -90,13 +91,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({ isOpen, onClos
         <div>
           <div className="flex items-center justify-between pb-4 border-b border-[#e7ebe3]">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#295d36] flex items-center justify-center p-1.5 shadow-2xs">
-                <img
-                  src="/brandguard-emblem-white.png"
-                  alt="BrandGuard Emblem"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <BrandGuardLogo size="sm" />
               <div className="flex flex-col">
                 <span className="font-playfair font-bold text-sm tracking-tight text-[#202820]">
                   BrandGuard <span className="text-[#295d36]">AI</span>

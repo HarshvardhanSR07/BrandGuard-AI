@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Badge, BadgeVariant } from '../../components/ui/Badge';
 import { draftsApi } from './draftsApi';
@@ -15,6 +15,7 @@ import {
   Trash2,
   X,
   Layers,
+  RotateCcw,
 } from 'lucide-react';
 
 interface DraftItem {
@@ -93,11 +94,14 @@ const DRAFTS_DATA: DraftItem[] = [
 
 export const DraftListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'all' | 'progress' | 'analysis' | 'review' | 'approved'>('all');
-  const [query, setQuery] = useState('');
-  const [channelFilter, setChannelFilter] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<'updated' | 'priority' | 'title'>('updated');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const tab = (searchParams.get('tab') as 'all' | 'progress' | 'analysis' | 'review' | 'approved') || 'all';
+  const channelFilter = searchParams.get('channel') || 'all';
+  const statusFilter = searchParams.get('status') || 'all';
+  const sortBy = (searchParams.get('sort') as 'updated' | 'priority' | 'title') || 'updated';
+
+  const [localQuery, setLocalQuery] = useState(searchParams.get('q') || '');
   const [draftsList, setDraftsList] = useState<DraftItem[]>(DRAFTS_DATA);
   const [selectedIds, setSelectedIds] = useState<Record<string, boolean>>({});
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -106,6 +110,32 @@ export const DraftListPage: React.FC = () => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
   };
+
+  const updateParam = useCallback(
+    (key: string, value: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value && value !== 'all' && value !== 'updated') {
+            next.set(key, value);
+          } else {
+            next.delete(key);
+          }
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  // Debounce search query syncing to URL
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateParam('q', localQuery.trim());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localQuery, updateParam]);
 
   useEffect(() => {
     draftsApi.list()
@@ -172,43 +202,50 @@ export const DraftListPage: React.FC = () => {
     showToast(`Exported ${selectedCount} drafts to JSON.`);
   };
 
-  const filteredDrafts = draftsList
-    .filter((d) => {
-      // Tab filter
-      if (tab === 'review' && d.status !== 'review') return false;
-      if (tab === 'approved' && d.status !== 'approved') return false;
-      if (tab === 'analysis' && d.status !== 'analysis') return false;
-      if (tab === 'progress' && (d.status === 'approved' || d.status === 'review')) return false;
+  const handleResetFilters = () => {
+    setLocalQuery('');
+    setSearchParams(new URLSearchParams(), { replace: true });
+  };
 
-      // Channel dropdown filter
-      if (channelFilter !== 'all' && d.channel.toLowerCase() !== channelFilter.toLowerCase()) return false;
+  const filteredDrafts = useMemo(() => {
+    const q = localQuery.trim().toLowerCase();
+    return draftsList
+      .filter((d) => {
+        // Tab filter
+        if (tab === 'review' && d.status !== 'review') return false;
+        if (tab === 'approved' && d.status !== 'approved') return false;
+        if (tab === 'analysis' && d.status !== 'analysis') return false;
+        if (tab === 'progress' && (d.status === 'approved' || d.status === 'review')) return false;
 
-      // Status dropdown filter
-      if (statusFilter !== 'all') {
-        if (statusFilter === 'review' && d.status !== 'review') return false;
-        if (statusFilter === 'approved' && d.status !== 'approved') return false;
-        if (statusFilter === 'analysis' && d.status !== 'analysis') return false;
-        if (statusFilter === 'draft' && d.status !== 'draft') return false;
-        if (statusFilter === 'medium' && d.status !== 'medium') return false;
-      }
+        // Channel dropdown filter
+        if (channelFilter !== 'all' && d.channel.toLowerCase() !== channelFilter.toLowerCase()) return false;
 
-      // Search query filter
-      if (query) {
-        const q = query.toLowerCase();
-        return (
-          d.title.toLowerCase().includes(q) ||
-          d.channel.toLowerCase().includes(q) ||
-          d.author.toLowerCase().includes(q) ||
-          d.id.toLowerCase().includes(q)
-        );
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'title') return a.title.localeCompare(b.title);
-      if (sortBy === 'priority') return b.findings - a.findings;
-      return a.id.localeCompare(b.id);
-    });
+        // Status dropdown filter
+        if (statusFilter !== 'all') {
+          if (statusFilter === 'review' && d.status !== 'review') return false;
+          if (statusFilter === 'approved' && d.status !== 'approved') return false;
+          if (statusFilter === 'analysis' && d.status !== 'analysis') return false;
+          if (statusFilter === 'draft' && d.status !== 'draft') return false;
+          if (statusFilter === 'medium' && d.status !== 'medium') return false;
+        }
+
+        // Search query filter
+        if (q) {
+          return (
+            d.title.toLowerCase().includes(q) ||
+            d.channel.toLowerCase().includes(q) ||
+            d.author.toLowerCase().includes(q) ||
+            d.id.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'title') return a.title.localeCompare(b.title);
+        if (sortBy === 'priority') return b.findings - a.findings;
+        return a.id.localeCompare(b.id);
+      });
+  }, [draftsList, tab, channelFilter, statusFilter, sortBy, localQuery]);
 
   return (
     <div className="space-y-5 relative">
@@ -250,7 +287,7 @@ export const DraftListPage: React.FC = () => {
         ].map((item) => (
           <button
             key={item.key}
-            onClick={() => setTab(item.key as any)}
+            onClick={() => updateParam('tab', item.key)}
             className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               tab === item.key
                 ? 'bg-[#12161c] text-white shadow-xs'
@@ -276,8 +313,8 @@ export const DraftListPage: React.FC = () => {
           <input
             type="text"
             placeholder="Search drafts by title, channel, author..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            value={localQuery}
+            onChange={(e) => setLocalQuery(e.target.value)}
             className="w-full h-8 pl-8 pr-3 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] placeholder-[#8c857b] focus:outline-none focus:border-[#3f7449]"
           />
         </div>
@@ -287,7 +324,7 @@ export const DraftListPage: React.FC = () => {
           <select
             value={channelFilter}
             onChange={(e) => {
-              setChannelFilter(e.target.value);
+              updateParam('channel', e.target.value);
               showToast(`Filtered channel: ${e.target.value === 'all' ? 'All Channels' : e.target.value}`);
             }}
             className="h-8 px-2.5 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] focus:outline-none focus:border-[#3f7449] cursor-pointer"
@@ -304,7 +341,7 @@ export const DraftListPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value);
+              updateParam('status', e.target.value);
               showToast(`Filtered status: ${e.target.options[e.target.selectedIndex].text}`);
             }}
             className="h-8 px-2.5 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] focus:outline-none focus:border-[#3f7449] cursor-pointer"
@@ -321,7 +358,7 @@ export const DraftListPage: React.FC = () => {
           <select
             value={sortBy}
             onChange={(e) => {
-              setSortBy(e.target.value as any);
+              updateParam('sort', e.target.value);
               showToast(`Sorted by: ${e.target.options[e.target.selectedIndex].text}`);
             }}
             className="h-8 px-2.5 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] focus:outline-none focus:border-[#3f7449] cursor-pointer"
@@ -340,12 +377,7 @@ export const DraftListPage: React.FC = () => {
             <div>No drafts found matching the selected filter criteria.</div>
             <button
               type="button"
-              onClick={() => {
-                setTab('all');
-                setQuery('');
-                setChannelFilter('all');
-                setStatusFilter('all');
-              }}
+              onClick={handleResetFilters}
               className="text-[#295d36] font-semibold underline cursor-pointer"
             >
               Reset all filters

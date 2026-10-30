@@ -91,12 +91,14 @@ const DEFAULT_FINDINGS: FindingView[] = [
 
 export const AnalysisPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const draftIdParam = searchParams.get('draftId');
+  const filterParam = (searchParams.get('filter') as 'all' | 'high' | 'medium' | 'low') || 'all';
+  const findingParam = searchParams.get('finding') || 'fnd-1';
 
-  const [filter, setFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [filter, setFilter] = useState<'all' | 'high' | 'medium' | 'low'>(filterParam);
   const [findings, setFindings] = useState<FindingView[]>(DEFAULT_FINDINGS);
-  const [selectedFindingId, setSelectedFindingId] = useState<string>('fnd-1');
+  const [selectedFindingId, setSelectedFindingId] = useState<string>(findingParam);
   const [isLoading, setIsLoading] = useState(false);
   const [draftTitle, setDraftTitle] = useState('Summer Campaign - Social');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -105,6 +107,28 @@ export const AnalysisPage: React.FC = () => {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleSelectFinding = (id: string) => {
+    setSelectedFindingId(id);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('finding', id);
+      return next;
+    }, { replace: true });
+  };
+
+  const handleSetFilter = (newFilter: 'all' | 'high' | 'medium' | 'low') => {
+    setFilter(newFilter);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (newFilter !== 'all') {
+        next.set('filter', newFilter);
+      } else {
+        next.delete('filter');
+      }
+      return next;
+    }, { replace: true });
   };
 
   useEffect(() => {
@@ -401,7 +425,7 @@ export const AnalysisPage: React.FC = () => {
         ].map((item) => (
           <button
             key={item.key}
-            onClick={() => setFilter(item.key as any)}
+            onClick={() => handleSetFilter(item.key as any)}
             className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
               filter === item.key
                 ? 'bg-[#12161c] text-white shadow-xs'
@@ -435,7 +459,7 @@ export const AnalysisPage: React.FC = () => {
               return (
                 <div
                   key={f.id}
-                  onClick={() => setSelectedFindingId(f.id)}
+                  onClick={() => handleSelectFinding(f.id)}
                   className={`p-4 rounded-xl border transition-all cursor-pointer bg-white ${
                     isSelected
                       ? 'border-[#12161c] ring-1 ring-[#12161c] shadow-card'

@@ -1,102 +1,137 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
-import { LandingPage } from '../features/landing/LandingPage';
-import { LoginPage } from '../features/auth/LoginPage';
-import { DashboardPage } from '../features/dashboard/DashboardPage';
-import { DraftListPage } from '../features/drafts/DraftListPage';
-import { DraftEditorPage } from '../features/drafts/DraftEditorPage';
-import { AnalysisPage } from '../features/analysis/AnalysisPage';
-import { ReviewQueuePage } from '../features/review/ReviewQueuePage';
-import { ReviewDetailPage } from '../features/review/ReviewDetailPage';
-import { PolicyManagementPage } from '../features/policies/PolicyManagementPage';
-import { GovernanceDashboard } from '../features/governance/GovernanceDashboard';
-import { ApprovedFactsPage } from '../features/policies/ApprovedFactsPage';
-import { WorkspacePage } from '../features/workspaces/WorkspacePage';
-import { AuditLogPage } from '../features/audit/AuditLogPage';
+import { PageSkeleton } from '../components/layout/PageSkeleton';
+
+// Route-based code splitting for minimal initial bundle and fast page transitions
+const LandingPage = lazy(() =>
+  import('../features/landing/LandingPage').then((m) => ({ default: m.LandingPage }))
+);
+const LoginPage = lazy(() =>
+  import('../features/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
+);
+const DashboardPage = lazy(() =>
+  import('../features/dashboard/DashboardPage').then((m) => ({ default: m.DashboardPage }))
+);
+const DraftListPage = lazy(() =>
+  import('../features/drafts/DraftListPage').then((m) => ({ default: m.DraftListPage }))
+);
+const DraftEditorPage = lazy(() =>
+  import('../features/drafts/DraftEditorPage').then((m) => ({ default: m.DraftEditorPage }))
+);
+const AnalysisPage = lazy(() =>
+  import('../features/analysis/AnalysisPage').then((m) => ({ default: m.AnalysisPage }))
+);
+const ReviewQueuePage = lazy(() =>
+  import('../features/review/ReviewQueuePage').then((m) => ({ default: m.ReviewQueuePage }))
+);
+const ReviewDetailPage = lazy(() =>
+  import('../features/review/ReviewDetailPage').then((m) => ({ default: m.ReviewDetailPage }))
+);
+const PolicyManagementPage = lazy(() =>
+  import('../features/policies/PolicyManagementPage').then((m) => ({ default: m.PolicyManagementPage }))
+);
+const GovernanceDashboard = lazy(() =>
+  import('../features/governance/GovernanceDashboard').then((m) => ({ default: m.GovernanceDashboard }))
+);
+const ApprovedFactsPage = lazy(() =>
+  import('../features/policies/ApprovedFactsPage').then((m) => ({ default: m.ApprovedFactsPage }))
+);
+const WorkspacePage = lazy(() =>
+  import('../features/workspaces/WorkspacePage').then((m) => ({ default: m.WorkspacePage }))
+);
+const AuditLogPage = lazy(() =>
+  import('../features/audit/AuditLogPage').then((m) => ({ default: m.AuditLogPage }))
+);
+
+const withSuspense = (Component: React.ComponentType) => (
+  <Suspense fallback={<PageSkeleton />}>
+    <Component />
+  </Suspense>
+);
 
 export const router = createBrowserRouter([
   // Screen 01: Landing Page / Introduction
   {
     path: '/',
-    element: <LandingPage />,
+    element: withSuspense(LandingPage),
   },
   {
     path: '/landing',
-    element: <LandingPage />,
+    element: withSuspense(LandingPage),
   },
   // Screen 02: Login & Authentication
   {
     path: '/login',
-    element: <LoginPage />,
+    element: withSuspense(LoginPage),
   },
   // Main Application Shell
   {
     element: <AppLayout />,
     children: [
-      // Screen 03: Role-based Dashboard
+      // Screen 03: Executive / Role-based Dashboard
       {
         path: 'dashboard',
-        element: <DashboardPage />,
+        element: withSuspense(DashboardPage),
       },
-      // Screen 04: Drafts List
+      // Screen 04: Content Review & Drafts List
       {
         path: 'drafts',
-        element: <DraftListPage />,
+        element: withSuspense(DraftListPage),
       },
       // Screen 05: Draft Editor
       {
         path: 'drafts/new',
-        element: <DraftEditorPage />,
+        element: withSuspense(DraftEditorPage),
       },
       {
         path: 'drafts/edit',
-        element: <DraftEditorPage />,
+        element: withSuspense(DraftEditorPage),
       },
-      // Screen 06: Analysis Results
+      // Screen 06: Findings & Real-Time AI Analysis
       {
         path: 'analysis',
-        element: <AnalysisPage />,
+        element: withSuspense(AnalysisPage),
       },
-      // Screen 07: Review Queue
+      // Screen 07: Review Queue Workstation
       {
         path: 'review',
-        element: <ReviewQueuePage />,
+        element: withSuspense(ReviewQueuePage),
       },
-      // Screen 08: Review Details
+      // Screen 08: Review Details & Decision Studio
       {
         path: 'review/:id',
-        element: <ReviewDetailPage />,
+        element: withSuspense(ReviewDetailPage),
       },
-      // Screen 09: Brand Policies
+      // Screen 09: Brand Policies & Rulebooks
       {
         path: 'policies',
-        element: <PolicyManagementPage />,
+        element: withSuspense(PolicyManagementPage),
       },
-      // Screen 10: Governance & Recurring Issues
-      {
-        path: 'governance',
-        element: <GovernanceDashboard />,
-      },
-      // Screen 11: Approved Facts Ground Truth
+      // Screen 10: Approved Facts Ground Truth (SER)
       {
         path: 'approved-facts',
-        element: <ApprovedFactsPage />,
+        element: withSuspense(ApprovedFactsPage),
       },
-      // Screen 12: Workspace Settings
+      // Screen 11: Governance Insights & Error Clustering
       {
-        path: 'settings',
-        element: <WorkspacePage />,
+        path: 'governance',
+        element: withSuspense(GovernanceDashboard),
       },
-      // Screen 13: Audit Log & Cryptographic Chain
+      // Screen 12: Cryptographic Audit Trail
       {
         path: 'audit',
-        element: <AuditLogPage />,
+        element: withSuspense(AuditLogPage),
+      },
+      // Screen 13: Workspace Settings & Integrations
+      {
+        path: 'settings',
+        element: withSuspense(WorkspacePage),
       },
       // Fallback
       {
         path: '*',
-        element: <Navigate to="/" replace />,
+        element: <Navigate to="/dashboard" replace />,
       },
     ],
   },

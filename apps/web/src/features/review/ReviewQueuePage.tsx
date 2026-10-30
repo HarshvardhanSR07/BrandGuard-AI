@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
 import { Badge } from '../../components/ui/Badge';
 import { reviewApi, ReviewQueueItem } from './reviewApi';
@@ -15,6 +15,7 @@ import {
   RefreshCw,
   Sparkles,
   FileCheck,
+  Search,
 } from 'lucide-react';
 
 const DEFAULT_QUEUE: ReviewQueueItem[] = [
@@ -79,11 +80,39 @@ const DEFAULT_QUEUE: ReviewQueueItem[] = [
 export const ReviewQueuePage: React.FC = () => {
   const navigate = useNavigate();
   const { role, user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const filter = (searchParams.get('filter') as 'all' | 'can_review' | 'own') || 'all';
+  const queryParam = searchParams.get('q') || '';
 
   const [items, setItems] = useState<ReviewQueueItem[]>(DEFAULT_QUEUE);
-  const [filter, setFilter] = useState<'all' | 'can_review' | 'own'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [localQuery, setLocalQuery] = useState(queryParam);
   const [isLoading, setIsLoading] = useState(false);
+
+  const updateParam = useCallback(
+    (key: string, value: string) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value && value !== 'all') {
+            next.set(key, value);
+          } else {
+            next.delete(key);
+          }
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateParam('q', localQuery.trim());
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [localQuery, updateParam]);
 
   const fetchQueue = async () => {
     setIsLoading(true);
@@ -103,12 +132,15 @@ export const ReviewQueuePage: React.FC = () => {
     fetchQueue();
   }, []);
 
-  const filteredItems = items.filter((item) => {
-    if (filter === 'can_review' && !item.canDecide) return false;
-    if (filter === 'own' && !item.isOwnDraft) return false;
-    if (searchQuery && !item.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
-    return true;
-  });
+  const filteredItems = useMemo(() => {
+    const q = localQuery.trim().toLowerCase();
+    return items.filter((item) => {
+      if (filter === 'can_review' && !item.canDecide) return false;
+      if (filter === 'own' && !item.isOwnDraft) return false;
+      if (q && !item.title.toLowerCase().includes(q) && !item._id.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [items, filter, localQuery]);
 
   return (
     <div className="space-y-5 max-w-full">
@@ -161,8 +193,8 @@ export const ReviewQueuePage: React.FC = () => {
           ].map((tab) => (
             <button
               key={tab.key}
-              onClick={() => setFilter(tab.key as any)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 ${
+              onClick={() => updateParam('filter', tab.key)}
+              className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 filter === tab.key
                   ? 'bg-[#12161c] text-white shadow-xs'
                   : 'text-[#736d64] hover:text-[#12161c] hover:bg-[#ede6db]'
@@ -182,8 +214,8 @@ export const ReviewQueuePage: React.FC = () => {
 
         <input
           type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          value={localQuery}
+          onChange={(e) => setLocalQuery(e.target.value)}
           placeholder="Filter queue by title..."
           className="h-8 px-3 text-xs bg-white border border-[#d9d1c5] rounded-lg text-[#12161c] placeholder-[#8c857b] focus:outline-none focus:border-[#3f7449] w-full sm:w-60"
         />

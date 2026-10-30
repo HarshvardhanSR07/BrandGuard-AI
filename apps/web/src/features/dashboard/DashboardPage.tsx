@@ -30,8 +30,15 @@ import {
   MoreVertical,
   Plus,
   Lightbulb,
+  Edit3,
+  Copy,
+  ExternalLink,
+  Palette,
+  Activity,
+  Sliders,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useWorkspace } from '../../hooks/useWorkspace';
 
 interface Campaign {
   id: string;
@@ -56,6 +63,90 @@ interface Finding {
   source: string;
   fix: string;
 }
+
+export interface BrandProfileData {
+  brandName: string;
+  industry: string;
+  description: string;
+  status: 'Verified' | 'Draft' | 'Needs Review';
+  toneOfVoice: string;
+  personality: string[];
+  communicationStyle: string;
+  colors: {
+    primary: { name: string; hex: string };
+    secondary: { name: string; hex: string };
+    accent: { name: string; hex: string };
+  };
+  approvedTerms: string[];
+  prohibitedTerms: string[];
+  requiredDisclaimers: string[];
+  activePolicyCount: number;
+  approvedFactsCount: number;
+  lastUpdated: string;
+}
+
+const DEFAULT_BRAND_PROFILES: Record<string, BrandProfileData> = {
+  ws_acme_global: {
+    brandName: 'Acme Cloud Platform',
+    industry: 'Enterprise Cloud & B2B SaaS',
+    description: 'Next-generation verified cloud infrastructure and developer automation platform.',
+    status: 'Verified',
+    toneOfVoice: 'Authoritative, accessible & precise',
+    personality: ['Empirical', 'Sophisticated', 'Direct'],
+    communicationStyle: 'High-clarity technical precision without hyperbole',
+    colors: {
+      primary: { name: 'Forest Deep', hex: '#0F2A1A' },
+      secondary: { name: 'Emerald Leaf', hex: '#15803D' },
+      accent: { name: 'Luminous Mint', hex: '#86EFAC' },
+    },
+    approvedTerms: ['Verified SLA', 'Multi-Region Resilience', 'Summer Edit'],
+    prohibitedTerms: ['100% Infallible', 'Unbreakable Guarantee', 'Cheap'],
+    requiredDisclaimers: ['Standard SLA Footnote', 'FTC Truth Benchmark'],
+    activePolicyCount: 4,
+    approvedFactsCount: 18,
+    lastUpdated: 'Oct 28, 2026',
+  },
+  ws_horizon_fintech: {
+    brandName: 'Horizon FinTech',
+    industry: 'Financial Technology & Global Payments',
+    description: 'Institutional-grade clearing, cross-border settlement, and multi-currency treasury operations.',
+    status: 'Verified',
+    toneOfVoice: 'Prudent, transparent & institutional',
+    personality: ['Compliant', 'Institutional', 'Transparent'],
+    communicationStyle: 'Factual, risk-aware, and audited terminology',
+    colors: {
+      primary: { name: 'Midnight Navy', hex: '#0B1F2E' },
+      secondary: { name: 'Cobalt Royal', hex: '#1D4ED8' },
+      accent: { name: 'Sky Luminous', hex: '#60A5FA' },
+    },
+    approvedTerms: ['SEC Registered', 'SIPC Protected', 'SOC2 Type II'],
+    prohibitedTerms: ['Guaranteed Returns', 'Risk-Free Investment', 'Free Money'],
+    requiredDisclaimers: ['FINRA/SIPC Regulatory Notice', 'Past Performance Warning'],
+    activePolicyCount: 6,
+    approvedFactsCount: 24,
+    lastUpdated: 'Oct 25, 2026',
+  },
+  ws_bioshield: {
+    brandName: 'BioShield Health',
+    industry: 'Clinical Wellness & Nutraceuticals',
+    description: 'Evidence-based clinical longevity solutions backed by peer-reviewed human trials.',
+    status: 'Needs Review',
+    toneOfVoice: 'Empirical, empathetic & grounded',
+    personality: ['Clinical', 'Ethical', 'Grounded'],
+    communicationStyle: 'Evidence-based clinical phrasing with mandatory FDA notices',
+    colors: {
+      primary: { name: 'Dark Spruce', hex: '#14291F' },
+      secondary: { name: 'Jade Clinical', hex: '#059669' },
+      accent: { name: 'Mint Health', hex: '#A7F3D0' },
+    },
+    approvedTerms: ['Clinically Studied', 'Non-GMO', 'Third-Party Verified'],
+    prohibitedTerms: ['Miracle Cure', 'Instant Diagnosis', 'Guaranteed Healing'],
+    requiredDisclaimers: ['FDA Standard Disclaimer STD', 'Doctor Consultation Notice'],
+    activePolicyCount: 5,
+    approvedFactsCount: 14,
+    lastUpdated: 'Oct 29, 2026',
+  },
+};
 
 const initialCampaigns: Campaign[] = [
   {
@@ -232,6 +323,7 @@ const barChartData = [
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { role } = useAuth();
+  const { workspace } = useWorkspace();
 
   const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
   const [filterType, setFilterType] = useState<'All' | 'Needs review' | 'Completed'>('All');
@@ -240,6 +332,18 @@ export const DashboardPage: React.FC = () => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [editorCopy, setEditorCopy] = useState('');
   const [toastMessage, setToastMessage] = useState('');
+
+  // Brand Profiles State by Workspace
+  const [brandProfiles, setBrandProfiles] = useState<Record<string, BrandProfileData>>(DEFAULT_BRAND_PROFILES);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const currentProfile = brandProfiles[workspace?.id || 'ws_acme_global'] || DEFAULT_BRAND_PROFILES.ws_acme_global;
+  const [editForm, setEditForm] = useState<BrandProfileData>(currentProfile);
+
+  // Sync editForm when workspace changes
+  useEffect(() => {
+    const prof = brandProfiles[workspace?.id || 'ws_acme_global'] || DEFAULT_BRAND_PROFILES.ws_acme_global;
+    setEditForm(prof);
+  }, [workspace?.id, brandProfiles]);
 
   const [analytics, setAnalytics] = useState<{
     draftsByStatus: Record<string, number>;
@@ -270,6 +374,25 @@ export const DashboardPage: React.FC = () => {
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3500);
+  };
+
+  const handleCopyHex = (hex: string, name: string) => {
+    navigator.clipboard.writeText(hex);
+    triggerToast(`Copied ${name} (${hex}) to clipboard!`);
+  };
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    const wsId = workspace?.id || 'ws_acme_global';
+    setBrandProfiles((prev) => ({
+      ...prev,
+      [wsId]: {
+        ...editForm,
+        lastUpdated: 'Just now',
+      },
+    }));
+    setIsEditModalOpen(false);
+    triggerToast(`Brand profile updated for ${editForm.brandName}!`);
   };
 
   const handleOpenReview = (camp: Campaign) => {
@@ -311,7 +434,7 @@ export const DashboardPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-5 text-[#111827] font-sans select-none pb-12">
+    <div className="space-y-6 text-[#111827] font-sans select-none pb-12">
       {/* Toast Notification Banner */}
       <AnimatePresence>
         {toastMessage && (
@@ -328,7 +451,7 @@ export const DashboardPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setToastMessage('')}
-              className="ml-2 text-[#858d83] hover:text-[#202820]"
+              className="ml-2 text-[#858d83] hover:text-[#202820] cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -337,102 +460,550 @@ export const DashboardPage: React.FC = () => {
       </AnimatePresence>
 
       {/* ========================================================= */}
-      {/* 1. TOP HERO BANNER: Deep Forest Emerald with LAX AI Mascot*/}
+      {/* 1. REDESIGNED HERO SECTION: Two-Column Composition        */}
       {/* ========================================================= */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-[#07190d] via-[#0c2415] to-[#071a0e] border border-[#1a3d24] p-6 sm:p-8 lg:p-9 shadow-sm overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-        {/* Background Radial Glow Behind Mascot */}
-        <div className="absolute right-20 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full bg-[#22c55e]/15 blur-3xl pointer-events-none" />
-        <div className="absolute left-1/3 bottom-0 w-72 h-72 rounded-full bg-[#10b981]/10 blur-3xl pointer-events-none" />
+      <div className="relative rounded-3xl bg-gradient-to-br from-[#07190d] via-[#0c2415] to-[#071a0e] border border-[#1a3d24] p-6 sm:p-8 lg:p-9 shadow-sm overflow-hidden">
+        {/* Subtle Restrained Ambient Glow */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 rounded-full bg-[#22c55e]/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-10 w-72 h-72 rounded-full bg-[#10b981]/5 blur-3xl pointer-events-none" />
 
-        {/* Top-Right LAX AI Badge */}
-        <div className="absolute top-5 right-6 z-20 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0e2a17] border border-[#1e4a2b] text-[11px] font-bold text-[#86efac] shadow-xs">
-          <Sparkles className="w-3 h-3 text-[#4ade80]" />
-          <span>LAX AI</span>
-        </div>
-
-        {/* Left Headline & Action Buttons */}
-        <div className="space-y-3.5 max-w-lg z-10 text-white">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0f2d18] border border-[#225431] text-[11px] font-medium text-[#86efac]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" />
-            <span>Autonomous Brand Guard · Active</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-white leading-[1.18]">
-            The study of the <br />
-            <span className="italic text-[#86efac] font-serif">structure of brand safety.</span>
-          </h1>
-
-          <p className="text-xs sm:text-[13px] text-[#a3b8a6] leading-relaxed max-w-md">
-            Continuously auditing copy, claims, and tone against verified truth benchmarks.
-          </p>
-
-          <div className="flex items-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => navigate('/analysis')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-white text-xs font-semibold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
-            >
-              <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                <Play className="w-2.5 h-2.5 fill-white text-white ml-0.5" />
-              </span>
-              <span>Continue Analysis</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/governance')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-white text-xs font-medium backdrop-blur-sm transition-all cursor-pointer"
-            >
-              <BarChart3 className="w-3.5 h-3.5 text-[#86efac]" />
-              <span>View Report</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Right Graphic: LAX Chibi Mascot with Orbital Aura & Status Pills */}
-        <div className="relative z-10 flex items-center gap-4 sm:gap-6 shrink-0 mt-4 md:mt-0">
-          {/* Orbital Rings around mascot */}
-          <div className="relative flex items-center justify-center">
-            {/* Concentric rings */}
-            <div className="absolute w-44 h-44 rounded-full border border-[#22c55e]/25 animate-[spin_20s_linear_infinite] pointer-events-none" />
-            <div className="absolute w-36 h-36 rounded-full border border-[#86efac]/20 pointer-events-none" />
-            <div className="absolute w-28 h-28 rounded-full bg-gradient-to-tr from-[#22c55e]/20 to-transparent blur-md pointer-events-none" />
-
-            {/* Chibi Mascot */}
-            <motion.div
-              animate={{ y: [0, -5, 0] }}
-              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-              className="relative w-32 h-32 sm:w-36 sm:h-36 flex items-center justify-center"
-            >
-              <img
-                src="/lax-icon.png"
-                alt="LAX Autonomous Mascot"
-                className="w-28 h-28 sm:w-32 sm:h-32 object-contain filter drop-shadow-[0_12px_24px_rgba(34,197,94,0.35)]"
-              />
-            </motion.div>
-          </div>
-
-          {/* 4 Floating Status Check Pills */}
-          <div className="flex flex-col gap-2 z-10">
-            {[
-              'Scanning content...',
-              'Checking claims...',
-              'Analyzing tone...',
-              'Verifying sources...',
-            ].map((step) => (
-              <div
-                key={step}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0c2314]/85 border border-[#1e4a2b]/80 backdrop-blur-md text-[#d1fae5] text-[11px] font-medium shadow-2xs"
-              >
-                <span className="w-4 h-4 rounded-full bg-[#10b981]/30 text-[#4ade80] flex items-center justify-center text-[10px] shrink-0">
-                  <Check className="w-2.5 h-2.5 stroke-[3]" />
-                </span>
-                <span className="truncate">{step}</span>
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          {/* ======================================================= */}
+          {/* LEFT COLUMN: Brand Messaging & Action CTAs (6-7 cols)   */}
+          {/* ======================================================= */}
+          <div className="lg:col-span-6 xl:col-span-7 flex flex-col justify-between py-1 text-white space-y-6">
+            <div className="space-y-4 max-w-xl">
+              {/* Workspace Status Label */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0f2d18]/90 border border-[#225431] text-[10px] sm:text-[11px] font-mono tracking-wider uppercase text-[#86efac]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse" />
+                <span>Brand Governance Workspace</span>
               </div>
-            ))}
+
+              {/* Main Headline & Tagline with Mint Accent Typography */}
+              <div className="space-y-1">
+                <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-serif tracking-tight text-[#f8faf5] leading-[1.12]">
+                  One brand standard.
+                </h1>
+                <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-serif italic text-[#86efac] tracking-tight leading-[1.15]">
+                  Every message. Everywhere.
+                </h2>
+              </div>
+
+              {/* Supporting Editorial Description */}
+              <p className="text-xs sm:text-sm text-[#a3b8a6] leading-relaxed max-w-lg">
+                Keep every campaign consistent, every claim accountable, and every message aligned with your brand identity.
+              </p>
+            </div>
+
+            {/* CTAs: Primary & Secondary Actions */}
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => navigate('/drafts/new')}
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-[#22c55e] hover:bg-[#16a34a] text-[#051c0a] text-xs sm:text-sm font-bold shadow-lg shadow-[#22c55e]/25 transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Start Content Review</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/governance')}
+                className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 text-[#f8faf5] text-xs sm:text-sm font-medium backdrop-blur-sm transition-all cursor-pointer"
+              >
+                <Activity className="w-4 h-4 text-[#86efac]" />
+                <span>View Governance Insights</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ======================================================= */}
+          {/* RIGHT COLUMN: Brand Profile Overview Card (5-6 cols)    */}
+          {/* ======================================================= */}
+          <div className="lg:col-span-6 xl:col-span-5 flex flex-col">
+            <div className="h-full rounded-2xl bg-[#0e2417]/90 border border-[#1f4a2d] p-5 sm:p-6 text-white shadow-xl backdrop-blur-md flex flex-col justify-between space-y-4 relative overflow-hidden">
+              {/* Subtle Card Ambient Light */}
+              <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#22c55e]/10 blur-2xl pointer-events-none" />
+
+              {/* Card Header: Brand Label, Avatar, Name & Edit Action */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[#1f4a2d]">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#86efac]" />
+                    <span className="text-[10px] font-mono tracking-widest text-[#86efac] uppercase font-bold">
+                      BRAND PROFILE
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditForm(currentProfile);
+                      setIsEditModalOpen(true);
+                    }}
+                    className="text-xs text-[#a3b8a6] hover:text-white hover:bg-white/10 px-2.5 py-1 rounded-lg border border-white/15 flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Edit Brand Profile"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-[#86efac]" />
+                    <span>Edit Profile</span>
+                  </button>
+                </div>
+
+                {/* Brand Identity Summary */}
+                <div className="flex items-start justify-between gap-3 pt-1">
+                  <div
+                    onClick={() => navigate('/settings')}
+                    className="flex items-center gap-3 cursor-pointer group min-w-0"
+                    title="View detailed brand settings"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 p-1.5 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <img
+                        src="/brandguard-official-logo.png"
+                        alt="Brand Logo"
+                        className="w-full h-full object-contain filter drop-shadow-xs"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-sm font-bold text-[#f8faf5] truncate group-hover:text-[#86efac] transition-colors">
+                          {currentProfile.brandName}
+                        </h3>
+                        <ExternalLink className="w-3 h-3 text-[#6b7280] group-hover:text-[#86efac] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <p className="text-[11px] text-[#86efac] font-medium truncate">
+                        {currentProfile.industry}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Profile Status Badge */}
+                  <span
+                    className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 flex items-center gap-1 ${
+                      currentProfile.status === 'Verified'
+                        ? 'bg-[#10b981]/20 text-[#4ade80] border border-[#10b981]/40'
+                        : currentProfile.status === 'Needs Review'
+                        ? 'bg-[#f59e0b]/20 text-[#fbbf24] border border-[#f59e0b]/40'
+                        : 'bg-white/10 text-[#d1d5db] border border-white/20'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                    {currentProfile.status}
+                  </span>
+                </div>
+
+                <p
+                  onClick={() => navigate('/settings')}
+                  className="text-xs text-[#b8c7b9] leading-relaxed cursor-pointer hover:text-white transition-colors line-clamp-2"
+                  title="Click to view workspace settings"
+                >
+                  {currentProfile.description}
+                </p>
+              </div>
+
+              {/* Brand Voice & Attributes */}
+              <div className="space-y-1.5 pt-2 border-t border-[#1f4a2d]/80 text-xs">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-[#86efac] font-mono uppercase tracking-wider font-semibold">
+                    Tone of Voice
+                  </span>
+                  <span className="text-[#c3cfc4] italic truncate max-w-[200px]">
+                    {currentProfile.toneOfVoice}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {currentProfile.personality.map((trait) => (
+                    <span
+                      key={trait}
+                      className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-[#86efac] font-mono"
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                  <span className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-[#a3b8a6] truncate max-w-[150px]">
+                    {currentProfile.communicationStyle}
+                  </span>
+                </div>
+              </div>
+
+              {/* Visual Identity: Interactive Color Swatches */}
+              <div className="space-y-1.5 pt-2 border-t border-[#1f4a2d]/80 text-xs">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="text-[#86efac] font-mono uppercase tracking-wider font-semibold">
+                    Visual Identity Palette
+                  </span>
+                  <span className="text-[10px] text-[#78887a]">Click swatch to copy hex</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: 'Primary', ...currentProfile.colors.primary },
+                    { label: 'Secondary', ...currentProfile.colors.secondary },
+                    { label: 'Accent', ...currentProfile.colors.accent },
+                  ].map((c) => (
+                    <button
+                      key={c.label}
+                      type="button"
+                      onClick={() => handleCopyHex(c.hex, c.name)}
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 flex items-center gap-2 transition-all cursor-pointer group text-left"
+                      title={`Copy ${c.name} (${c.hex})`}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-md shrink-0 border border-white/30 shadow-xs"
+                        style={{ backgroundColor: c.hex }}
+                      />
+                      <div className="min-w-0">
+                        <div className="text-[9px] text-[#86efac] truncate leading-tight">
+                          {c.label}
+                        </div>
+                        <div className="text-[10px] font-mono text-[#f8faf5] font-semibold group-hover:text-[#4ade80] transition-colors truncate">
+                          {c.hex}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Brand Guidelines & Compliance Configuration */}
+              <div className="pt-2 border-t border-[#1f4a2d]/80 space-y-2">
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono text-[#86efac] uppercase">Approved Terms</span>
+                    <div className="flex flex-wrap gap-1">
+                      {currentProfile.approvedTerms.slice(0, 2).map((term) => (
+                        <span
+                          key={term}
+                          className="px-1.5 py-0.5 rounded bg-[#10b981]/15 border border-[#10b981]/30 text-[#86efac] text-[9px] truncate max-w-[120px]"
+                        >
+                          ✓ {term}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono text-[#f87171] uppercase">Prohibited Phrases</span>
+                    <div className="flex flex-wrap gap-1">
+                      {currentProfile.prohibitedTerms.slice(0, 2).map((term) => (
+                        <span
+                          key={term}
+                          className="px-1.5 py-0.5 rounded bg-[#ef4444]/15 border border-[#ef4444]/30 text-[#fca5a5] text-[9px] truncate max-w-[120px]"
+                        >
+                          ✕ {term}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Metrics & Navigation Shortcuts */}
+                <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-[#a3b8a6]">
+                  <div className="flex items-center gap-3">
+                    <span
+                      onClick={() => navigate('/policies')}
+                      className="hover:text-[#86efac] cursor-pointer underline underline-offset-2 transition-colors"
+                      title="View Active Brand Policies"
+                    >
+                      {currentProfile.activePolicyCount} Active Policies
+                    </span>
+                    <span>•</span>
+                    <span
+                      onClick={() => navigate('/approved-facts')}
+                      className="hover:text-[#86efac] cursor-pointer underline underline-offset-2 transition-colors"
+                      title="View Approved Fact Catalog"
+                    >
+                      {currentProfile.approvedFactsCount} Approved Facts
+                    </span>
+                  </div>
+                  <span className="font-mono text-[#78887a]">
+                    {currentProfile.lastUpdated}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* ========================================================= */}
+      {/* BRAND PROFILE EDIT MODAL                                  */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {isEditModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsEditModalOpen(false);
+            }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              className="w-full max-w-xl bg-white rounded-3xl border border-[#e7ebe3] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Modal Header */}
+              <div className="p-5 border-b border-[#e7ebe3] flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-[#111827]">
+                    Edit Brand Profile & Guidelines
+                  </h3>
+                  <p className="text-xs text-[#6b7280]">
+                    Configure brand identity, voice parameters, colors, and compliance boundaries.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="w-8 h-8 rounded-full border border-[#e7ebe3] hover:bg-[#f7f8f5] flex items-center justify-center text-[#6b7280] hover:text-[#111827] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Form */}
+              <form onSubmit={handleSaveProfile} className="p-6 overflow-y-auto space-y-4 text-xs">
+                {/* 1. Identity */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-[#1e4a2b] uppercase tracking-wider font-mono">
+                    1. Brand Identity
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Brand Display Name</label>
+                      <input
+                        type="text"
+                        value={editForm.brandName}
+                        onChange={(e) => setEditForm({ ...editForm, brandName: e.target.value })}
+                        className="w-full h-8 px-2.5 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Industry / Category</label>
+                      <input
+                        type="text"
+                        value={editForm.industry}
+                        onChange={(e) => setEditForm({ ...editForm, industry: e.target.value })}
+                        className="w-full h-8 px-2.5 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-semibold text-[#374151]">Short Brand Description</label>
+                    <textarea
+                      rows={2}
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                      className="w-full p-2 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Brand Voice */}
+                <div className="space-y-3 pt-3 border-t border-[#f3f4f6]">
+                  <h4 className="text-xs font-bold text-[#1e4a2b] uppercase tracking-wider font-mono">
+                    2. Voice & Communication Style
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Tone of Voice</label>
+                      <input
+                        type="text"
+                        value={editForm.toneOfVoice}
+                        onChange={(e) => setEditForm({ ...editForm, toneOfVoice: e.target.value })}
+                        className="w-full h-8 px-2.5 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Personality Traits (comma separated)</label>
+                      <input
+                        type="text"
+                        value={editForm.personality.join(', ')}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            personality: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        className="w-full h-8 px-2.5 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Visual Identity Palette */}
+                <div className="space-y-3 pt-3 border-t border-[#f3f4f6]">
+                  <h4 className="text-xs font-bold text-[#1e4a2b] uppercase tracking-wider font-mono">
+                    3. Visual Identity Colors
+                  </h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Primary Hex</label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="color"
+                          value={editForm.colors.primary.hex}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              colors: {
+                                ...editForm.colors,
+                                primary: { ...editForm.colors.primary, hex: e.target.value.toUpperCase() },
+                              },
+                            })
+                          }
+                          className="w-7 h-7 rounded border border-[#d1d5db] cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={editForm.colors.primary.hex}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              colors: {
+                                ...editForm.colors,
+                                primary: { ...editForm.colors.primary, hex: e.target.value.toUpperCase() },
+                              },
+                            })
+                          }
+                          className="w-full h-8 px-2 font-mono text-xs rounded border border-[#d1d5db]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Secondary Hex</label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="color"
+                          value={editForm.colors.secondary.hex}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              colors: {
+                                ...editForm.colors,
+                                secondary: { ...editForm.colors.secondary, hex: e.target.value.toUpperCase() },
+                              },
+                            })
+                          }
+                          className="w-7 h-7 rounded border border-[#d1d5db] cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={editForm.colors.secondary.hex}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              colors: {
+                                ...editForm.colors,
+                                secondary: { ...editForm.colors.secondary, hex: e.target.value.toUpperCase() },
+                              },
+                            })
+                          }
+                          className="w-full h-8 px-2 font-mono text-xs rounded border border-[#d1d5db]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Accent Hex</label>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="color"
+                          value={editForm.colors.accent.hex}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              colors: {
+                                ...editForm.colors,
+                                accent: { ...editForm.colors.accent, hex: e.target.value.toUpperCase() },
+                              },
+                            })
+                          }
+                          className="w-7 h-7 rounded border border-[#d1d5db] cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={editForm.colors.accent.hex}
+                          onChange={(e) =>
+                            setEditForm({
+                              ...editForm,
+                              colors: {
+                                ...editForm.colors,
+                                accent: { ...editForm.colors.accent, hex: e.target.value.toUpperCase() },
+                              },
+                            })
+                          }
+                          className="w-full h-8 px-2 font-mono text-xs rounded border border-[#d1d5db]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Guidelines */}
+                <div className="space-y-3 pt-3 border-t border-[#f3f4f6]">
+                  <h4 className="text-xs font-bold text-[#1e4a2b] uppercase tracking-wider font-mono">
+                    4. Guidelines & Terminology
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Approved Terms (comma separated)</label>
+                      <input
+                        type="text"
+                        value={editForm.approvedTerms.join(', ')}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            approvedTerms: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        className="w-full h-8 px-2.5 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-semibold text-[#374151]">Prohibited Phrases (comma separated)</label>
+                      <input
+                        type="text"
+                        value={editForm.prohibitedTerms.join(', ')}
+                        onChange={(e) =>
+                          setEditForm({
+                            ...editForm,
+                            prohibitedTerms: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        className="w-full h-8 px-2.5 rounded-lg border border-[#d1d5db] text-xs focus:outline-none focus:border-[#16a34a]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Actions */}
+                <div className="pt-4 border-t border-[#e7ebe3] flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-[#d1d5db] hover:bg-[#f3f4f6] text-xs font-semibold text-[#4b5563] cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 rounded-xl bg-[#1e4a2b] hover:bg-[#15361f] text-white text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                  >
+                    Save Brand Profile
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ========================================================= */}
       {/* 2. METRIC STAT CARDS ROW: 4 Clean Cards with Sparklines   */}
@@ -567,7 +1138,7 @@ export const DashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFilterType('All')}
-                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
                   filterType === 'All'
                     ? 'bg-[#183921] text-white'
                     : 'text-[#6b7280] hover:text-[#111827]'
@@ -578,7 +1149,7 @@ export const DashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFilterType('Needs review')}
-                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
                   filterType === 'Needs review'
                     ? 'bg-[#183921] text-white'
                     : 'text-[#6b7280] hover:text-[#111827]'
@@ -589,7 +1160,7 @@ export const DashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setFilterType('Completed')}
-                className={`px-2.5 py-1 rounded-full font-medium transition-all ${
+                className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
                   filterType === 'Completed'
                     ? 'bg-[#183921] text-white'
                     : 'text-[#6b7280] hover:text-[#111827]'
@@ -687,7 +1258,7 @@ export const DashboardPage: React.FC = () => {
                 key={tab}
                 type="button"
                 onClick={() => setProgressTab(tab)}
-                className={`px-3 py-1 rounded-full font-medium transition-all ${
+                className={`px-3 py-1 rounded-full font-medium transition-all cursor-pointer ${
                   progressTab === tab
                     ? 'bg-[#183921] text-white'
                     : 'text-[#6b7280] hover:text-[#111827]'
@@ -914,7 +1485,7 @@ export const DashboardPage: React.FC = () => {
                   key={tab}
                   type="button"
                   onClick={() => setActivityTab(tab)}
-                  className={`px-3 py-0.5 rounded-full font-medium transition-all ${
+                  className={`px-3 py-0.5 rounded-full font-medium transition-all cursor-pointer ${
                     activityTab === tab
                       ? 'bg-[#183921] text-white'
                       : 'text-[#6b7280] hover:text-[#111827]'
@@ -1041,7 +1612,7 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* ======================================================= */}
-        {/* COLUMN 3 (3 cols): Quick Actions & Mascot Speech Bubble */}
+        {/* COLUMN 3 (3 cols): Quick Actions                         */}
         {/* ======================================================= */}
         <div className="lg:col-span-3 bg-white rounded-2xl border border-[#e7ebe3] p-5 shadow-xs flex flex-col justify-between relative min-h-[190px]">
           <div className="space-y-3">
@@ -1090,19 +1661,13 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom-Right Floating Speech Bubble with Chibi Mascot Avatar */}
-          <div className="flex items-center justify-end gap-2 pt-3">
-            <div className="bg-white border border-[#e5e7eb] shadow-md px-3 py-1.5 rounded-2xl text-[11px] font-medium text-[#1f2937] flex items-center gap-1.5 animate-bounce">
-              <span>Let's make it on-brand!</span>
-              <span>🌿</span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-[#183921] p-0.5 overflow-hidden flex items-center justify-center shrink-0 shadow-md">
-              <img
-                src="/lax-icon.png"
-                alt="LAX Mascot"
-                className="w-7 h-7 object-contain"
-              />
-            </div>
+          {/* Clean Compliance Footnote */}
+          <div className="pt-3 border-t border-[#f3f4f6] flex items-center justify-between text-[11px] text-[#6b7280]">
+            <span className="flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#16a34a]" />
+              <span>Multi-Layer Defense Active</span>
+            </span>
+            <span className="font-mono text-[10px]">ISO 12947-2</span>
           </div>
         </div>
       </div>

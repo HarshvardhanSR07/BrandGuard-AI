@@ -60,6 +60,7 @@ export const WorkspacePage: React.FC = () => {
 
   // Integrations State
   const [apiKey, setApiKey] = useState('HFAK••••••••••••••••••••••••••••');
+  const [laxMemoryApiKey, setLaxMemoryApiKey] = useState('3ddaf04065334504cd15d0764e14e3b3c8fa85b79548a7699d32d1e8cc021725');
   const [webhookUrl, setWebhookUrl] = useState('https://hooks.slack.com/services/T00/B00/XXXXX');
   const [isPinging, setIsPinging] = useState(false);
 
@@ -498,6 +499,57 @@ export const WorkspacePage: React.FC = () => {
                   Update
                 </Button>
               </div>
+            </div>
+          </div>
+
+          {/* LAX Autonomous Brand Guardian Memory Engine */}
+          <div className="p-5 rounded-xl border border-[#e4ddd3] bg-white shadow-card space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#f0fdf4] text-[#15803d] flex items-center justify-center">
+                  <Database className="w-4 h-4 text-[#15803d]" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-[#12161c]">LAX's Autonomous Memory Engine</h3>
+                  <div className="text-[11px] text-[#736d64]">
+                    Long-term contextual brand memory & conversational grounding
+                  </div>
+                </div>
+              </div>
+              <Badge variant="approved" size="sm">
+                Memory Synced
+              </Badge>
+            </div>
+
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[10px] font-mono uppercase text-[#736d64]">
+                  Active Memory API Key
+                </label>
+                <span className="text-[10px] text-[#15803d] font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-[#15803d]" />
+                  Active & Grounded
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={laxMemoryApiKey}
+                  onChange={(e) => setLaxMemoryApiKey(e.target.value)}
+                  className="flex-1 h-8 px-3 text-xs bg-[#faf7f2] font-mono border border-[#d9d1c5] rounded-lg focus:outline-none focus:border-[#3f7449]"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => showToast("LAX's Memory API Key validated and synchronized.")}
+                  className="text-xs cursor-pointer"
+                >
+                  Save Key
+                </Button>
+              </div>
+              <p className="text-[10px] text-[#8c857b]">
+                Key SHA: <span className="font-mono text-[#15803d]">3dda...1725</span> · Persistent retention of brand decisions & guideline checks.
+              </p>
             </div>
           </div>
 

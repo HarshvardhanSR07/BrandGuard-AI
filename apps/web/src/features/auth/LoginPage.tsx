@@ -60,7 +60,7 @@ export const LoginPage: React.FC = () => {
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 relative">
               <motion.img
-                src="/brandguard-emblem-tight.png"
+                src="/brandguard-official-logo.png"
                 alt="BrandGuard Emblem"
                 whileHover={{ scale: 1.08, rotate: 2 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 18 }}

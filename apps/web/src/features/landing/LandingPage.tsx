@@ -57,7 +57,7 @@ export const LandingPage: React.FC = () => {
           >
             <div className="w-10 h-10 shrink-0">
               <motion.img
-                src="/brandguard-emblem-tight.png"
+                src="/brandguard-official-logo.png"
                 alt="BrandGuard AI Emblem"
                 whileHover={{ scale: 1.08, rotate: 2 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 18 }}
@@ -618,7 +618,7 @@ export const LandingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <img
-              src="/brandguard-emblem-tight.png"
+              src="/brandguard-official-logo.png"
               alt="BrandGuard Emblem"
               className="w-6 h-6 object-contain"
             />

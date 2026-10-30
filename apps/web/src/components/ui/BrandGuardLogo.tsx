@@ -32,11 +32,11 @@ export const BrandGuardLogo: React.FC<BrandGuardLogoProps> = ({
         }`}
       >
         <img
-          src="/brandguard-emblem-tight.png"
+          src="/brandguard-official-logo.png"
           alt="BrandGuard AI Emblem"
           className="w-full h-full object-contain filter drop-shadow-xs"
           onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/brandguard-official-logo.png';
+            (e.currentTarget as HTMLImageElement).src = '/brandguard-official-logo-transparent.png';
           }}
         />
       </div>

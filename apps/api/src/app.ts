@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import {
   createAuthRouter,
   errorHandler,
@@ -24,12 +25,41 @@ import {
 import { brandGuardAIService } from './ai/brandGuardAIService';
 import { cogneeMemoryService } from './ai/cogneeMemoryService';
 
+// SEC-06: AI endpoint rate limiter — 15 requests per 15 minutes per IP
+const aiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: { message: 'Too many AI requests, please try again later.' } },
+});
+
 export const createApp = (): Application => {
   const app = express();
 
   // Security headers & CORS
   app.use(helmet());
-  app.use(cors({ origin: true, credentials: true }));
+  const allowedOrigins = (
+    process.env.CORS_ORIGINS ||
+    process.env.CORS_ORIGIN ||
+    'http://localhost:5173,http://localhost:3000'
+  )
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        // Allow server-to-server requests (no Origin header) and whitelisted origins
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error(`CORS: origin "${origin}" is not allowed`));
+        }
+      },
+      credentials: true,
+    })
+  );
   app.use(cookieParser());
   app.use(express.json({ limit: '1mb' }));
 
@@ -41,7 +71,7 @@ export const createApp = (): Application => {
       process.env.HF_INFERENCE_URL ||
       process.env.AI_INFERENCE_URL ||
       `https://api-inference.huggingface.co/models/${modelId}`;
-    const laxKey = process.env.LAX_MEMORY_API_KEY || '3ddaf04065334504cd15d0764e14e3b3c8fa85b79548a7699d32d1e8cc021725';
+    const laxKeyConfigured = !!process.env.LAX_MEMORY_API_KEY;
     const laxStats = cogneeMemoryService.getMemoryStats();
     res.json({
       status: 'ok',
@@ -51,10 +81,8 @@ export const createApp = (): Application => {
       inferenceEndpoint: endpoint,
       engineMode: token ? 'API Token Enabled' : 'Offline Deterministic Grounding',
       laxMemory: {
-        configured: !!laxKey,
-        keyPrefix: laxKey ? `${laxKey.substring(0, 4)}...${laxKey.substring(laxKey.length - 4)}` : null,
-        fullKey: laxKey,
-        status: 'Active & Synchronized',
+        configured: laxKeyConfigured,
+        status: laxKeyConfigured ? 'Active & Synchronized' : 'Unconfigured',
         version: 'v2.4-cognee',
         cognee: laxStats,
       },
@@ -265,7 +293,7 @@ export const createApp = (): Application => {
   }));
 
   // BrandGuard AI Specialist Governance Review (Qwen3-4B LoRA Module + Gates L-01 to L-06)
-  app.post('/api/governance/review', asyncHandler(async (req, res) => {
+  app.post('/api/governance/review', authenticate(), workspaceContext(), aiRateLimiter, asyncHandler(async (req, res) => {
     const { brand_id, draft_text } = req.body;
     if (!brand_id || !draft_text) {
       return res.status(400).json({ error: { message: 'brand_id and draft_text are required' } });
@@ -319,7 +347,7 @@ export const createApp = (): Application => {
   }));
 
   // LAX Autonomous Brand Guardian with Cognee Memory Layer & Per-User Personalization
-  app.get('/api/lax/memory', asyncHandler(async (req, res) => {
+  app.get('/api/lax/memory', authenticate(), workspaceContext(), asyncHandler(async (req, res) => {
     const userId = (req.query.userId as string) || (req.query.role as string) || 'usr_sarah_creator';
     const profile = cogneeMemoryService.getUserProfile(userId);
     const stats = cogneeMemoryService.getMemoryStats();
@@ -343,7 +371,7 @@ export const createApp = (): Application => {
     });
   }));
 
-  app.post('/api/lax/chat', asyncHandler(async (req, res) => {
+  app.post('/api/lax/chat', authenticate(), workspaceContext(), aiRateLimiter, asyncHandler(async (req, res) => {
     const { message, userId, userName, role, workspaceId } = req.body;
     if (!message) {
       return res.status(400).json({ error: { message: 'message is required' } });
@@ -360,7 +388,7 @@ export const createApp = (): Application => {
     res.json(result);
   }));
 
-  app.post('/api/lax/memory/remember', asyncHandler(async (req, res) => {
+  app.post('/api/lax/memory/remember', authenticate(), workspaceContext(), asyncHandler(async (req, res) => {
     const { text, dataset, userId, name } = req.body;
     if (!text) {
       return res.status(400).json({ error: { message: 'text is required' } });
@@ -386,7 +414,7 @@ export const createApp = (): Application => {
     });
   }));
 
-  app.post('/api/lax/memory/forget', asyncHandler(async (req, res) => {
+  app.post('/api/lax/memory/forget', authenticate(), workspaceContext(), asyncHandler(async (req, res) => {
     const { userId } = req.body;
     const profile = cogneeMemoryService.getUserProfile(userId || 'creator');
     profile.rememberedContexts = [];

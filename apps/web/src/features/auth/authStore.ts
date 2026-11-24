@@ -78,7 +78,8 @@ function getInitials(name: string): string {
 
 function getInitialState() {
   if (typeof localStorage === 'undefined') {
-    return { user: DEFAULT_CREATOR, isAuthenticated: true, activeWorkspaceId: 'ws_acme_global' };
+    // SSR / no localStorage: start unauthenticated
+    return { user: null as any, isAuthenticated: false, activeWorkspaceId: 'ws_acme_global' };
   }
   try {
     const raw = localStorage.getItem('bg_user_profile');
@@ -89,7 +90,8 @@ function getInitialState() {
   } catch {
     // fallback
   }
-  return { user: DEFAULT_CREATOR, isAuthenticated: true, activeWorkspaceId: 'ws_acme_global' };
+  // No stored session → unauthenticated
+  return { user: null as any, isAuthenticated: false, activeWorkspaceId: 'ws_acme_global' };
 }
 
 const initial = getInitialState();

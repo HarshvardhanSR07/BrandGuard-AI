@@ -67,7 +67,10 @@ export class CogneeMemoryService {
   private remoteCogneeUrl: string | undefined;
 
   constructor() {
-    this.apiKey = process.env.LAX_MEMORY_API_KEY || '3ddaf04065334504cd15d0764e14e3b3c8fa85b79548a7699d32d1e8cc021725';
+    this.apiKey = process.env.LAX_MEMORY_API_KEY || '';
+    if (!this.apiKey) {
+      console.warn('[CogneeMemoryService] LAX_MEMORY_API_KEY is not set. Running in offline/mock mode.');
+    }
     this.remoteCogneeUrl = process.env.COGNEE_API_URL || process.env.COGNEE_SERVER_URL;
     this.initializeDefaultMemory();
   }

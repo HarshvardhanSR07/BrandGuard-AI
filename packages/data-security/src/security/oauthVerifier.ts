@@ -106,6 +106,15 @@ export async function verifyGoogleIdToken(idToken: string): Promise<VerifiedGoog
   const env = getEnv();
   const audience = env.GOOGLE_CLIENT_ID;
 
+  // SEC-05: Audience MUST be configured in production to prevent token substitution attacks
+  if (!audience) {
+    if (env.NODE_ENV === 'production') {
+      throw unauthenticated('Google OAuth is not configured: GOOGLE_CLIENT_ID environment variable is required');
+    }
+    // Allow skip in development/test only — log a prominent warning
+    console.warn('[SECURITY] GOOGLE_CLIENT_ID is not set. Audience verification is DISABLED. Set this variable before deploying to production.');
+  }
+
   try {
     const client = getGoogleClient(audience);
     const ticket = await client.verifyIdToken({
@@ -160,6 +169,14 @@ export async function verifyMicrosoftIdToken(idToken: string): Promise<VerifiedM
   const expectedAudience = env.MICROSOFT_CLIENT_ID;
   const configuredTenant = env.MICROSOFT_TENANT_ID || 'common';
 
+  // SEC-05: Audience MUST be configured in production to prevent token substitution attacks
+  if (!expectedAudience) {
+    if (env.NODE_ENV === 'production') {
+      throw unauthenticated('Microsoft OAuth is not configured: MICROSOFT_CLIENT_ID environment variable is required');
+    }
+    console.warn('[SECURITY] MICROSOFT_CLIENT_ID is not set. Audience verification is DISABLED. Set this variable before deploying to production.');
+  }
+
   // 1. Decode token to inspect header (kid) and unverified payload (tid, iss)
   const decodedToken = jwt.decode(idToken, { complete: true });
   if (!decodedToken || typeof decodedToken !== 'object' || !decodedToken.header?.kid) {
@@ -178,6 +195,7 @@ export async function verifyMicrosoftIdToken(idToken: string): Promise<VerifiedM
     const verifyOptions: jwt.VerifyOptions = {
       algorithms: ['RS256'],
     };
+    // Always enforce audience when configured; never silently skip it
     if (expectedAudience) {
       verifyOptions.audience = expectedAudience;
     }

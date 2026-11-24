@@ -608,7 +608,7 @@ export const LoginPage: React.FC = () => {
                         <UserCheck className="w-3 h-3 text-[#1e5438]" />
                         <span>Demo Identities (Role-Based Access)</span>
                       </span>
-                      <span className="text-[9px] text-[#9ca3af]">PW: BrandGuard2026!</span>
+                      <span className="text-[9px] text-[#9ca3af]">{import.meta.env.DEV ? 'PW: BrandGuard2026!' : 'Demo credentials'}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <button
